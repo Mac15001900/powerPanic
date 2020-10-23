@@ -11,7 +11,7 @@ var SceneWeapons = new Phaser.Class({
     },
 
     preload: function () {
-        console.log('Preload in navigation');
+        console.log('Preload in weapons');
         this.load.image('weapons-icon', 'assets/icon-laser.png');   
     },
 

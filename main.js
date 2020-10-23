@@ -49,12 +49,12 @@ var SceneStart = new Phaser.Class({
 
             console.log('Mouse clicked');
 
-        }, this);        
+        }, this);
 
-        this.keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W)
-        this.keyN = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.N)
-        this.keyP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P)
-        this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S)
+        this.keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+        this.keyN = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.N);
+        this.keyP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
+        this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
     },
 
     update: function(timestep, dt) {
@@ -87,5 +87,91 @@ var config = {
     };
 
 var game = new Phaser.Game(config);
+
+//Networking stuff
+
+const ROOM_NAME = 'observable-main';
+const CHANNEL_ID = 'zb4mnOSMgmoONGoM';
+var memebers;
+
+function getUsername() {
+    var name;
+    name = prompt("Enter your username","");
+      
+    while(!name){
+        var name = prompt(s.enter_username_non_empty,"");
+    }
+    return(name);
+}
+
+const drone = new ScaleDrone(CHANNEL_ID, {
+  data: { // Will be sent out as clientData via events
+    name: getUsername(),
+  },
+});
+
+function sendMessage(type, content) {
+  drone.publish({
+    room: ROOM_NAME,
+    message: {
+      type: type,
+      content: content
+    },
+  }); 
+}
+
+function forwardMessageToActiveScenes(type, content) {
+    for (var i = 0; i < game.scene.scenes.length; i++) {
+        if(game.scene.scenes[i].scene.settings.active){
+            console.log(game.scene.scenes[i]);
+            game.scene.scenes[i].receiveMessage(type,content);
+        }
+    }
+}
+
+drone.on('open', error => {
+    if (error) {
+        return console.error(error);
+    }
+    console.log('Successfully connected to Scaledrone');
+     
+    const room = drone.subscribe(ROOM_NAME);
+    room.on('open', error => {
+       if (error) {
+           return console.error(error);
+       }
+       console.log('Successfully joined room');
+    });
+     
+     // List of currently online members, emitted once
+    room.on('members', m => {
+        members = m;
+        //TODO Update member display?
+    });
+     
+    // User joined the room
+    room.on('member_join', member => {
+        members.push(member);
+        console.log(member.clientData.name+' joined!');
+    });
+     
+    // User left the room
+    room.on('member_leave', ({id}) => {    
+        const index = members.findIndex(member => member.id === id);
+        members.splice(index, 1);
+        //TODO Update member display?
+    });
+
+    room.on('data', (data, serverMember) => {
+        //Data is received here
+        console.log(data);
+        if (serverMember) {
+            forwardMessageToActiveScenes(data.type, data.content);
+        } else {
+            console.log('Server: '+data.content); 
+        }
+    });
+
+});
 
     

@@ -11,7 +11,7 @@ var SceneShields = new Phaser.Class({
     },
 
     preload: function () {
-        console.log('Preload in navigation');
+        console.log('Preload in shields');
         this.load.image('shields-icon', 'assets/icon-shield.png');
 
     },

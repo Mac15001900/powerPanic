@@ -11,7 +11,7 @@ var ScenePiloting = new Phaser.Class({
     },
 
     preload: function () {
-        console.log('Preload in navigation');
+        console.log('Preload in piloting');
         this.load.image('pilot-icon', 'assets/icon-pilot.png');   
     },
 
