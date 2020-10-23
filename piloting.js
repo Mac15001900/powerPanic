@@ -19,11 +19,13 @@ var ScenePiloting = new Phaser.Class({
         console.log('Preload in piloting');
         this.load.image('pilot-icon', 'assets/icon-pilot.png');
         this.load.image('ship', 'assets/ship.png');
+        this.load.image('exhaust', 'assets/blue-particle.png');
     },
 
     params: {
         ENGINE_POWER: 100,
         ROTATION_SPEED: 0.005,
+        EXHAUST_SPREAD: 20,
     },
 
     create: function () {
@@ -49,15 +51,35 @@ var ScenePiloting = new Phaser.Class({
         this.ship.body.collideWorldBounds = true;
         this.ship.body.dragX = 6;
         this.ship.body.dragY = 6;
+        this.ship.depth = 10;
 
         this.input.keyboard.on('keyup', function (event) {
             switch(event.key){
                 case 't': sendMessage('test','This is the captain speaking.'); break;
             }
-            console.dir(event);
-
         });
         console.log(this.ship);
+
+        //Exhaust
+        var particles = this.add.particles('exhaust');
+
+        this.emitter = particles.createEmitter({
+            speed: 500,
+            scale: { start: 1, end: 0 },
+            blendMode: 'ADD',
+            angle: { min: 90+45, max: 90+45 },
+        });
+        this.emitter.on = false;
+        this.emitter.changeDirection = function (newDirection, spread) {
+            /*this.angle.propertyValue = {
+                min:newDirection-spread,
+                max:newDirection+spread,
+            }*/
+            this.angle.start = newDirection-spread;
+            this.angle.end   = newDirection+spread;
+        };
+        this.emitter.startFollow(this.ship);
+        console.log(this.emitter);
 
     },
 
@@ -75,6 +97,8 @@ var ScenePiloting = new Phaser.Class({
 
         body.acceleration.x = -acceleration*Math.sin(Math.PI*body.rotation/180)*this.params.ENGINE_POWER;
         body.acceleration.y = acceleration*Math.cos(Math.PI*body.rotation/180)*this.params.ENGINE_POWER;
+
+        this.emitter.on = this.forwardKey.isDown;
             
         var rotation = 0;
         if(this.leftKey.isDown) rotation--;
@@ -83,6 +107,7 @@ var ScenePiloting = new Phaser.Class({
 
         //this.ship.angularVelocity = rotation * this.params.ROTATION_SPEED;
         this.ship.rotation += rotation * this.params.ROTATION_SPEED * dt;
+        this.emitter.changeDirection(this.ship.body.rotation+90, this.params.EXHAUST_SPREAD);
         //this.ship.rotation = rotation;
 
     },
