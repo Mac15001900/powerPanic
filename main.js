@@ -83,6 +83,9 @@ var SceneStart = new Phaser.Class({
 
 });
 
+const CANVAS_HEIGHT = 800;
+const CANVAS_WIDTH = 600;
+
 var config = {
         type: Phaser.AUTO,
         width: 800,
@@ -90,7 +93,7 @@ var config = {
         physics: {
             default: 'arcade',
             arcade: {
-                gravity: { y: 200 }
+
             }
         },
         scene:  [SceneStart, SceneNavigation, SceneWeapons, ScenePiloting, SceneShields],
@@ -109,7 +112,7 @@ function getUsername() {
     name = prompt("Enter your username","");
       
     while(!name){
-        var name = prompt(s.enter_username_non_empty,"");
+        var name = prompt("Enter your username (it can'this be empty)","");
     }
     return(name);
 }
