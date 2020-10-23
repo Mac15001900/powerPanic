@@ -30,6 +30,10 @@ var SceneWeapons = new Phaser.Class({
             console.log('Switching back to menu');
             this.scene.start('SceneStart');
         }
-    }
+    },
+
+    receiveMessage: function (data) {
+        console.log(data);
+    },
 
 });

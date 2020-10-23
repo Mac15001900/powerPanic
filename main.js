@@ -13,6 +13,7 @@ var SceneStart = new Phaser.Class({
         this.keyN;
         this.keyP;
         this.keyS;
+        this.keyM;
     }, 
 
     preload: function() {
@@ -55,14 +56,28 @@ var SceneStart = new Phaser.Class({
         this.keyN = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.N);
         this.keyP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
         this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+
+        //Key events:
+        this.input.keyboard.on('keyup', function (event) {
+            switch(event.key){
+                case 'z': alert('You pressed Z'); break;
+                case 'm': sendMessage('test','Here is an "m" test'); break;
+            }
+            console.dir(event);
+
+        });
+
     },
 
     update: function(timestep, dt) {
+        //Note: those have to be here, otherwise they don't see this.scene properly
         if(this.keyW.isDown) this.scene.start('SceneWeapons');
         if(this.keyN.isDown) this.scene.start('SceneNavigation');
         if(this.keyP.isDown) this.scene.start('ScenePiloting');
-        if(this.keyS.isDown) this.scene.start('SceneShields');        
-    }
+        if(this.keyS.isDown) this.scene.start('SceneShields');
+    },
+
+    receiveMessage: function (){},
 
 
 
@@ -79,11 +94,6 @@ var config = {
             }
         },
         scene:  [SceneStart, SceneNavigation, SceneWeapons, ScenePiloting, SceneShields],
-        /*{
-            preload: preload,
-            create: create,
-            update: update
-        }*/
     };
 
 var game = new Phaser.Game(config);
@@ -92,7 +102,7 @@ var game = new Phaser.Game(config);
 
 const ROOM_NAME = 'observable-main';
 const CHANNEL_ID = 'zb4mnOSMgmoONGoM';
-var memebers;
+var members;
 
 function getUsername() {
     var name;
@@ -104,9 +114,18 @@ function getUsername() {
     return(name);
 }
 
+function getRandomName() {
+  const adjs = ["autumn", "hidden", "bitter", "misty", "silent", "empty", "dry", "dark", "summer", "icy", "delicate", "quiet", "white", "cool", "spring", "winter", "patient"];
+  const nouns = ["waterfall", "river", "breeze", "moon", "rain", "wind", "sea", "morning", "snow", "lake", "sunset", "pine", "shadow", "leaf", "dawn", "glitter", "forest", "hill"];
+  const name = adjs[Math.floor(Math.random() * adjs.length)] + "_" + nouns[Math.floor(Math.random() * nouns.length)];
+  console.log('Your randomly generated name is: ' + name);
+  return (name);
+}
+
 const drone = new ScaleDrone(CHANNEL_ID, {
   data: { // Will be sent out as clientData via events
-    name: getUsername(),
+    //name: getUsername(),
+    name: getRandomName(),
   },
 });
 
@@ -120,11 +139,11 @@ function sendMessage(type, content) {
   }); 
 }
 
-function forwardMessageToActiveScenes(type, content) {
+function forwardMessageToActiveScenes(data) {
     for (var i = 0; i < game.scene.scenes.length; i++) {
         if(game.scene.scenes[i].scene.settings.active){
             console.log(game.scene.scenes[i]);
-            game.scene.scenes[i].receiveMessage(type,content);
+            game.scene.scenes[i].receiveMessage(data);
         }
     }
 }
@@ -164,9 +183,14 @@ drone.on('open', error => {
 
     room.on('data', (data, serverMember) => {
         //Data is received here
+        forwardMessageToActiveScenes(data);        
         console.log(data);
         if (serverMember) {
-            forwardMessageToActiveScenes(data.type, data.content);
+            switch(data.type){
+                case 'test': alert(serverMember.clientData.name+' sends a test message: '+data.content); break;
+                default: alert('Unknown message type received: '+data.type)
+
+            }            
         } else {
             console.log('Server: '+data.content); 
         }
