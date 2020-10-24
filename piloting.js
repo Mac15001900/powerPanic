@@ -37,6 +37,7 @@ var ScenePiloting = new Phaser.Class({
         ROTATION_SPEED: 0.005,
         EXHAUST_SPREAD: 20,
         MAX_ASTEROIDS: 10,
+        BASIC_COOLDOW: 1000,
     },
 
     create: function () {
@@ -57,6 +58,7 @@ var ScenePiloting = new Phaser.Class({
         this.backwardsKey = createKey(this,'S');
         this.leftKey = createKey(this,'A');
         this.rightKey = createKey(this,'D');
+        this.fireKey = createKey(this,'SPACE');
 
         this.ship = this.physics.add.sprite(CANVAS_HEIGHT/2,CANVAS_WIDTH/2,'ship');
         this.ship.body.angularDrag = 0;
@@ -70,8 +72,7 @@ var ScenePiloting = new Phaser.Class({
 
         this.input.keyboard.on('keyup', function (event) {
             switch(event.key){
-                case 't': sendMessage('test','This is the captain speaking.'); break;
-            }
+                case 't': sendMessage('test','This is the captain speaking.'); break;            }
         });
         console.log(this.ship);
 
@@ -86,10 +87,6 @@ var ScenePiloting = new Phaser.Class({
         });
         this.emitter.on = false;
         this.emitter.changeDirection = function (newDirection, spread) {
-            /*this.angle.propertyValue = {
-                min:newDirection-spread,
-                max:newDirection+spread,
-            }*/
             this.angle.start = newDirection-spread;
             this.angle.end   = newDirection+spread;
         };
@@ -132,10 +129,29 @@ var ScenePiloting = new Phaser.Class({
 
         //Asteroids
         if(this.asteroids.length < this.params.MAX_ASTEROIDS){
-            if(Math.random()>0.98){
-                var x = Math.random() * CANVAS_WIDTH;
-                var y = Math.random() * CANVAS_HEIGHT;
+            if(Math.random()>0.5){
+                var x, y;
+                var side = Math.ceil(Math.random()*4);
+                switch(side){
+                    case 1:
+                        x = Math.random() * (CANVAS_WIDTH - 50) + 100;
+                        y = 50;
+                        break;
+                    case 2:
+                        x = 50 ;
+                        y = Math.random() * (CANVAS_HEIGHT - 50) + 100;
+                        break;
+                    case 3:
+                        x = Math.random() * (CANVAS_WIDTH - 50) + 100;
+                        y = CANVAS_HEIGHT - 50;
+                        break;
+                    case 4:
+                        x = CANVAS_WIDTH - 50 ;
+                        y = Math.random() * (CANVAS_HEIGHT - 50) + 100;
+                        break;
+                }
 
+                console.log('Spawning asteroid at x: '+x+', y: '+y);
                 var newAsteroid = this.physics.add.sprite(x,y,'meteor-big-1');
                 newAsteroid.setVelocity(Math.random()*100, Math.random()*100);
                 newAsteroid.setBounce(1, 1);
@@ -144,6 +160,8 @@ var ScenePiloting = new Phaser.Class({
                 this.asteroids.push(newAsteroid);
             }
         }
+
+        //if()
 
     },
 
