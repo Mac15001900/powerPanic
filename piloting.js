@@ -19,6 +19,7 @@ var ScenePiloting = new Phaser.Class({
         console.log('Preload in piloting');
         this.load.image('pilot-icon', 'assets/icon-pilot.png');
         this.load.image('ship', 'assets/ship.png');
+        this.load.image('friendly-ship', 'assets/ship-green.png.png');
         this.load.image('exhaust', 'assets/blue-particle.png');
         this.load.image('meteor-big-1', 'assets/meteorBrown_big1.png');
         this.load.image('meteor-big-2', 'assets/meteorBrown_big2.png');
@@ -38,7 +39,7 @@ var ScenePiloting = new Phaser.Class({
         ROTATION_SPEED: 0.005,
         EXHAUST_SPREAD: 20,
         MAX_ASTEROIDS: 10,
-        BASIC_COOLDOW: 100,
+        BASIC_COOLDOW: 250,
         BULLET_SPEED: 1000,
         BULLET_RECOIL: 10,
     },
@@ -98,9 +99,44 @@ var ScenePiloting = new Phaser.Class({
 
         this.asteroids = [];
         this.bullets = [];
+        this.friendly = [];
+
+        this.physics.add.overlap(this.bullets, this.asteroids, this.hitAsteroid, null, this);
 
         this.basicCooldown = 0;
 
+    },
+
+    hitAsteroid: function(bullet, asteroid){
+        bullet.destroy();
+        asteroid.destroy();
+        this.asteroids = this.asteroids.filter(a=>a.active);
+        this.bullets = this.bullets.filter(b=>b.active);
+        this.physics.add.overlap(this.bullets, this.asteroids, this.hitAsteroid, null, this);
+    },
+
+    pickPositionsNearEdge: function(distance){
+        var x, y;
+                var side = Math.ceil(Math.random()*4);
+                switch(side){
+                    case 1:
+                        x = Math.random() * (CANVAS_WIDTH - distance) + 100;
+                        y = distance;
+                        break;
+                    case 2:
+                        x = distance ;
+                        y = Math.random() * (CANVAS_HEIGHT - distance) + 100;
+                        break;
+                    case 3:
+                        x = Math.random() * (CANVAS_WIDTH - distance) + 100;
+                        y = CANVAS_HEIGHT - distance;
+                        break;
+                    case 4:
+                        x = CANVAS_WIDTH - distance ;
+                        y = Math.random() * (CANVAS_HEIGHT - distance) + 100;
+                        break;
+                }
+        return {x: x, y: y};
     },
 
     update: function (timestep, dt) {
@@ -109,14 +145,16 @@ var ScenePiloting = new Phaser.Class({
             this.scene.start('SceneStart');
         }
         var body = this.ship.body;
+        var xDirection =  Math.sin(this.ship.rotation);
+        var yDirection = -Math.cos(this.ship.rotation);
 
 
         var acceleration = 0;
-        if(this.forwardKey.isDown) acceleration--;
-        if(this.backwardsKey.isDown) acceleration++;
+        if(this.forwardKey.isDown) acceleration++;
+        if(this.backwardsKey.isDown) acceleration--;
 
-        body.acceleration.x = -acceleration*Math.sin(this.ship.rotation)*this.params.ENGINE_POWER;
-        body.acceleration.y = acceleration*Math.cos(this.ship.rotation)*this.params.ENGINE_POWER;
+        body.acceleration.x = acceleration*xDirection*this.params.ENGINE_POWER;
+        body.acceleration.y = acceleration*yDirection*this.params.ENGINE_POWER;
 
         if(this.forwardKey.isDown && !this.cameras.main.shakeEffect.isRunning){
             this.cameras.main.shakeEffect.start(100,.005,.005)
@@ -136,29 +174,10 @@ var ScenePiloting = new Phaser.Class({
         //Asteroids
         if(this.asteroids.length < this.params.MAX_ASTEROIDS){
             if(Math.random()>0.5){
-                var x, y;
-                var side = Math.ceil(Math.random()*4);
-                switch(side){
-                    case 1:
-                        x = Math.random() * (CANVAS_WIDTH - 50) + 100;
-                        y = 50;
-                        break;
-                    case 2:
-                        x = 50 ;
-                        y = Math.random() * (CANVAS_HEIGHT - 50) + 100;
-                        break;
-                    case 3:
-                        x = Math.random() * (CANVAS_WIDTH - 50) + 100;
-                        y = CANVAS_HEIGHT - 50;
-                        break;
-                    case 4:
-                        x = CANVAS_WIDTH - 50 ;
-                        y = Math.random() * (CANVAS_HEIGHT - 50) + 100;
-                        break;
-                }
+                var pos = this.pickPositionsNearEdge(50);
 
-                console.log('Spawning asteroid at x: '+x+', y: '+y);
-                var newAsteroid = this.physics.add.sprite(x,y,'meteor-big-1');
+                console.log('Spawning asteroid at x: '+pos.x+', y: '+pos.y);
+                var newAsteroid = this.physics.add.sprite(pos.x,pos.y,'meteor-big-1');
                 newAsteroid.setVelocity(Math.random()*100, Math.random()*100);
                 newAsteroid.setBounce(1, 1);
                 newAsteroid.setCollideWorldBounds(true);
@@ -169,8 +188,7 @@ var ScenePiloting = new Phaser.Class({
 
         if(this.fireKey.isDown && this.basicCooldown <= 0){
             this.basicCooldown = this.params.BASIC_COOLDOW;            
-            var xDirection =  Math.sin(this.ship.rotation);
-            var yDirection = -Math.cos(this.ship.rotation);
+            
             var newBullet = this.physics.add.sprite(this.ship.x + xDirection*10,this.ship.y + yDirection*10,'laser');
             newBullet.rotation = this.ship.rotation;
             newBullet.setVelocity(this.params.BULLET_SPEED * xDirection, this.params.BULLET_SPEED *yDirection)
@@ -178,10 +196,13 @@ var ScenePiloting = new Phaser.Class({
             if(!this.cameras.main.shakeEffect.isRunning) this.cameras.main.shakeEffect.start(this.basicCooldown/2,.005,.005);
 
             this.ship.body.velocity.x -= xDirection * this.params.BULLET_RECOIL;
-            this.ship.body.velocity.y -= yDirection * this.params.BULLET_RECOIL;
-        
+            this.ship.body.velocity.y -= yDirection * this.params.BULLET_RECOIL;       
 
         }
+
+        /*for (var i = 0; i < this.bullets.length; i++) {
+            if(this.bullets[i].x<0 ||
+        }*/
 
         this.basicCooldown -= dt;
 
