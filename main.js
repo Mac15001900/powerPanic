@@ -1,3 +1,6 @@
+const DEBUG_IGNORE_TAKEN_STATIONS = false;
+const DEBUG_SHOW_HITBOXES = false;
+
 var SceneStart = new Phaser.Class({
 
     Extends: Phaser.Scene,
@@ -91,7 +94,7 @@ var SceneStart = new Phaser.Class({
 
 function switchToScene(currentScene, targetScene) {
     var currentKey = currentScene.scene.key;
-    if(takenStations.includes(targetScene)){
+    if(takenStations.includes(targetScene) && targetScene !== 'SceneStart' && !DEBUG_IGNORE_TAKEN_STATIONS){
         console.error('Tried to switch to a taken station '+targetScene);
         return false;
     }
@@ -103,7 +106,7 @@ function switchToScene(currentScene, targetScene) {
         sendMessage('stationLeft', currentKey);    
     }
     
-    sendMessage('stationTaken', targetScene);
+    if(targetScene !== 'SceneStart') sendMessage('stationTaken', targetScene);
     currentScene.scene.start(targetScene);
 }
 
@@ -129,7 +132,7 @@ var config = {
         physics: {
             default: 'arcade',
             arcade: {
-
+                debug: DEBUG_SHOW_HITBOXES,
             }
         },
         scene:  [SceneStart, SceneNavigation, SceneWeapons, ScenePiloting, SceneShields, SceneSnake],
