@@ -2,7 +2,9 @@ var SceneComms = new Phaser.Class({
 
 	Extends: Phaser.Scene,
 
-	initalize: function SceneComms () {
+	initialize: 
+
+    function SceneComms () {
 		Phaser.Scene.call (this, {key: 'SceneComms'});
 		this.icon;
 		this.backKey;
@@ -50,10 +52,6 @@ for (let i = 0; i < this.password.length; i++) {
     this.passwordPos.push(pos)
 }
 this.passwordPos.sort(function(a,b){return a-b});
-        console.log(this.password);
-        console.log(this.passwordPos);
-
-
         this.squares = [];
         this.text = [];
         let counter = 0;
@@ -84,8 +82,8 @@ this.passwordPos.sort(function(a,b){return a-b});
                 this.squares[i].setTint(0xffffff);
             });
             this.squares[i].on('pointerup', ()=>{
-                if(this.input.text.length<12){
-                    this.input.text+=letter;
+                if(this.inputt.text.length<12){
+                    this.inputt.text+=letter;
                 }
             });
         }
@@ -100,7 +98,7 @@ this.passwordPos.sort(function(a,b){return a-b});
         this.inputsquare = this.add.image(30+45*12,270, 'square');
         this.inputsquare.scaleX = 3;
         this.inputsquare.scaleY = 3/4;
-        this.input = this.add.text(30+45*12,270, '', { font: "35px Arial", fill: "#19de65" }).setOrigin(0.5);
+        this.inputt = this.add.text(30+45*12,270, '', { font: "35px Arial", fill: "#19de65" }).setOrigin(0.5);
 
         this.clearsquare = this.add.image(30+45*12,270+a, 'square');
         this.clearsquare.scaleX = 3;
@@ -115,7 +113,7 @@ this.passwordPos.sort(function(a,b){return a-b});
             this.clearsquare.clearTint();
         })
         this.clearsquare.on('pointerup',()=>{
-            this.input.text='';
+            this.inputt.text='';
         })
 
         this.backspacesquare = this.add.image(30+45*12,270+a*2, 'square');
@@ -131,7 +129,7 @@ this.passwordPos.sort(function(a,b){return a-b});
             this.backspacesquare.clearTint();
         })
         this.backspacesquare.on('pointerup',()=>{
-            this.input.text = this.input.text.slice(0,-1);
+            this.inputt.text = this.inputt.text.slice(0,-1);
         })
 
         this.submitsquare = this.add.image(30+45*12,270+a*3, 'square');
@@ -147,12 +145,12 @@ this.passwordPos.sort(function(a,b){return a-b});
             this.submitsquare.clearTint();
         })
         this.submitsquare.on('pointerup',()=>{
-            if(this.input.text==this.password){
+            if(this.inputt.text==this.password){
                 console.log('correct');
             }
             else{
                 console.log('wrong');
-                this.input.text='';
+                this.inputt.text='';
             }
         })
 
@@ -168,5 +166,5 @@ this.passwordPos.sort(function(a,b){return a-b});
 
     receiveMessage: function (data) {
         console.log(data);
-    }
+    },
 });

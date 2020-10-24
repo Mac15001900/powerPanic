@@ -193,6 +193,7 @@ function getActiveScene() {
             return(game.scene.scenes[i]);
         }
     }
+    console.error('No active scene found');
 }
 
 drone.on('open', error => {
