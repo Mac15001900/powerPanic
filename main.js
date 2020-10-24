@@ -34,7 +34,7 @@ var SceneStart = new Phaser.Class({
         text.text = 'This is a start menu thingy.\n Use W,N,P,S and A to switch to stations.';
 
         this.add.image(400, 300, 'sky');
-
+        /*test*/
         var particles = this.add.particles('red');
 
         var emitter = particles.createEmitter({
