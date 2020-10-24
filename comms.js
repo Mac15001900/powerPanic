@@ -2,7 +2,9 @@ var SceneComms = new Phaser.Class({
 
 	Extends: Phaser.Scene,
 
-	initalize: function SceneComms () {
+	initialize: 
+
+    function SceneComms () {
 		Phaser.Scene.call (this, {key: 'SceneComms'});
 		this.icon;
 		this.backKey;
