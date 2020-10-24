@@ -1,4 +1,4 @@
-const DEBUG_IGNORE_TAKEN_STATIONS = false;
+const DEBUG_IGNORE_TAKEN_STATIONS = true;
 const DEBUG_SHOW_HITBOXES = false;
 
 var SceneStart = new Phaser.Class({
@@ -242,7 +242,7 @@ drone.on('open', error => {
                     if(!takenStations.includes(data.content)) takenStations.push(data.content);
                     console.log(serverMember.clientData.name + ' takes over '+data.content);
                     break;
-                case 'wecome': //Sent whenever a new player joins
+                case 'welcome': //Sent whenever a new player joins
                     if(gameStatus===GS.NOT_CONNECTED){
                         gameStatus = data.content.gameStatus;
                         takenStations = data.content.takenStations;
