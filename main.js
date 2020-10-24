@@ -1,4 +1,4 @@
-const DEBUG_IGNORE_TAKEN_STATIONS = false;
+const DEBUG_IGNORE_TAKEN_STATIONS = true;
 const DEBUG_SHOW_HITBOXES = false;
 
 var SceneStart = new Phaser.Class({
@@ -17,6 +17,7 @@ var SceneStart = new Phaser.Class({
         this.keyP;
         this.keyS;
         this.keyM;
+        this.keyC;
     }, 
 
     preload: function() {
@@ -25,13 +26,15 @@ var SceneStart = new Phaser.Class({
         this.load.image('icon-navigation', 'assets/icon-navigation.png');
         this.load.image('icon-piloting', 'assets/icon-pilot.png');
         this.load.image('icon-shields', 'assets/icon-shield.png');
+        this.load.image('icon-comms', 'assets/satellite-communication.png');
+        this.load.image('square', 'assets/square.png');
         console.log(game)   ;
         console.log(this.currentStation);
     },
 
     create: function() {
         text = this.add.text(200, 200, '', { font: "32px Arial", fill: "#19de65" });
-        text.text = 'This is a start menu thingy.\n Use W,N,P,S and A to switch to stations.';
+        text.text = 'This is a start menu thingy.\n Use W,N,P,C,S and A to switch to stations.';
 
         this.add.image(400, 300, 'sky');
 
@@ -64,6 +67,7 @@ var SceneStart = new Phaser.Class({
         this.keyP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
         this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
         this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+        this.keyC = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
 
         //Key events:
         this.input.keyboard.on('keyup', function (event) {
@@ -84,6 +88,7 @@ var SceneStart = new Phaser.Class({
         if(this.keyP.isDown) switchToScene(this,'ScenePiloting');
         if(this.keyS.isDown) switchToScene(this,'SceneShields');
         if(this.keyA.isDown) switchToScene(this,'SceneSnake');
+        if(this.keyC.isDown) switchToScene(this,'SceneComms');
     },
 
     receiveMessage: function (){},
@@ -135,7 +140,7 @@ var config = {
                 debug: DEBUG_SHOW_HITBOXES,
             }
         },
-        scene:  [SceneStart, SceneNavigation, SceneWeapons, ScenePiloting, SceneShields, SceneSnake],
+        scene:  [SceneStart, SceneNavigation, SceneWeapons, ScenePiloting, SceneShields, SceneSnake, SceneComms],
     };
 
 var game = new Phaser.Game(config);
@@ -188,6 +193,7 @@ function getActiveScene() {
             return(game.scene.scenes[i]);
         }
     }
+    console.error('No active scene found');
 }
 
 drone.on('open', error => {
@@ -242,7 +248,7 @@ drone.on('open', error => {
                     if(!takenStations.includes(data.content)) takenStations.push(data.content);
                     console.log(serverMember.clientData.name + ' takes over '+data.content);
                     break;
-                case 'wecome': //Sent whenever a new player joins
+                case 'welcome': //Sent whenever a new player joins
                     if(gameStatus===GS.NOT_CONNECTED){
                         gameStatus = data.content.gameStatus;
                         takenStations = data.content.takenStations;
@@ -264,4 +270,4 @@ drone.on('open', error => {
 
 });
 
-    
+/*testing that i have access*/
