@@ -18,6 +18,10 @@ var SceneStart = new Phaser.Class({
 
     preload: function() {
         this.load.image('logo', 'assets/testLogo.png');     
+        this.load.image('icon-weapons', 'assets/icon-laser.png');
+        this.load.image('icon-navigation', 'assets/icon-navigation.png');
+        this.load.image('icon-piloting', 'assets/icon-pilot.png');
+        this.load.image('icon-shields', 'assets/icon-shield.png');
         console.log(game)   ;
         console.log(this.currentStation);
     },
@@ -83,6 +87,22 @@ var SceneStart = new Phaser.Class({
 
 });
 
+function switchToScene(currentScene, targetScene) {
+    var currentKey = currentScene.scene.key;
+    if(takenStations.includes(targetScene)){
+        console.error('Tried to switch to a taken station '+targetScene);
+        return false;
+    }
+
+    sendMessage('stationLeft', currentKey);
+    var index = takenStations.indexOf(currentKey);
+    if(index !== -1) takenStations.splice(index,1);
+    else console.error('Leaving station that was already free '+currentKey);
+    sendMessage('stationLeft', currentKey);
+    sendMessage('stationTaken', targetScene);
+    currentScene.scene.start(targetScene);
+}
+
 const CANVAS_HEIGHT = 800;
 const CANVAS_WIDTH = 600;
 
@@ -106,6 +126,7 @@ var game = new Phaser.Game(config);
 const ROOM_NAME = 'observable-main';
 const CHANNEL_ID = 'zb4mnOSMgmoONGoM';
 var members;
+var takenStations = [];
 
 function getUsername() {
     var name;
@@ -142,11 +163,10 @@ function sendMessage(type, content) {
   }); 
 }
 
-function forwardMessageToActiveScenes(data) {
+function getActiveScene() {
     for (var i = 0; i < game.scene.scenes.length; i++) {
         if(game.scene.scenes[i].scene.settings.active){
-            console.log(game.scene.scenes[i]);
-            game.scene.scenes[i].receiveMessage(data);
+            return(game.scene.scenes[i]);
         }
     }
 }
@@ -186,12 +206,12 @@ drone.on('open', error => {
 
     room.on('data', (data, serverMember) => {
         //Data is received here
-        forwardMessageToActiveScenes(data);        
+        getActiveScene().receiveMessage(data);      
         console.log(data);
         if (serverMember) {
             switch(data.type){
                 case 'test': alert(serverMember.clientData.name+' sends a test message: '+data.content); break;
-                default: alert('Unknown message type received: '+data.type)
+                default: console.log('Unknown message type received: '+data.type)
 
             }            
         } else {
