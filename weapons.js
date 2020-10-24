@@ -32,7 +32,8 @@ var SceneWeapons = new Phaser.Class({
 
         this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
-        var bottom, mid1, mid2, top;
+        this.bottom;
+        var mid1, mid2, top;
         // this.bottom = this.add.image(700,500,'missile-bottom');
         // this.mid1 = this.add.image(700,400,'missile-middle1');
         // this.mid2 = this.add.image(700,300,'missile-middle2');
@@ -48,10 +49,15 @@ var SceneWeapons = new Phaser.Class({
         if(this.spaceKey.isDown){
             if(this.isPlaying == false)
                 this.initializeMissileGame();
-            else 
-                dropPiece();           
+            // else 
+            //     this.dropPiece();           
         }
+    },
 
+    initializeMissileGame: function() {
+        this.isPlaying = true;
+        this.currentPiece = this.bottom;
+        this.startPiece();
     },
     
     startPiece: function () {
@@ -60,27 +66,22 @@ var SceneWeapons = new Phaser.Class({
             x = 700;
             y = 500;
             i = 'missile-bottom';
-            v = 200;
+            v = -200;
         }
         
         this.currentPiece = this.physics.add.image(x,y,i);
         this.currentPiece.setVelocity(v, 0);
-        // this.currentPiece.setBounce(0, 0);
+        this.currentPiece.setBounce(1, 0);
         this.currentPiece.setCollideWorldBounds(true);
 
-        emitter.startFollow(bottom);
+        // emitter.startFollow(this.currentPiece);
     },
 
-    dropPiece: function () {
-        this.currentPiece.setVelocity(0,0);
-    },
+    // dropPiece: function () {
+    //     this.currentPiece.setVelocity(0,0);
+    // },
 
     receiveMessage: function (data) {
         console.log(data);
-    },
-        
-    initializeMissileGame: function() {
-        this.isPlaying = true;
-        this.currentPiece = this.bottom;
-    },
+    },        
 });
