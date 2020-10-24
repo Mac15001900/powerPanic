@@ -52,10 +52,6 @@ for (let i = 0; i < this.password.length; i++) {
     this.passwordPos.push(pos)
 }
 this.passwordPos.sort(function(a,b){return a-b});
-        console.log(this.password);
-        console.log(this.passwordPos);
-
-
         this.squares = [];
         this.text = [];
         let counter = 0;
@@ -170,5 +166,5 @@ this.passwordPos.sort(function(a,b){return a-b});
 
     receiveMessage: function (data) {
         console.log(data);
-    }
+    },
 });
