@@ -23,7 +23,7 @@ var SceneWeapons = new Phaser.Class({
 
     create: function () {
         this.isPlaying = false;
-        var g1 = this.add.grid(350, 399, 400, 400, 16, 16, 0x057605);
+        var g1 = this.add.grid(350, 399, 100, 400, 4, 4, 0x057605);
 
         // const floor = this.add.rectangle(350, 550, 400, 10, 0x1EE530, 1);
 
@@ -117,6 +117,7 @@ var SceneWeapons = new Phaser.Class({
         piece.setVelocity(v, 0);
         piece.setBounce(1, 0);
         piece.setCollideWorldBounds(true);
+        this.physics.add.collider(piece, this.currentPiece);
 
         this.currentPiece = piece;
         // emitter.startFollow(this.currentPiece);
@@ -135,7 +136,7 @@ var SceneWeapons = new Phaser.Class({
         console.log("this.currentPiece.texture.key is:");
         console.log(this.currentPiece.texture.key); 
         
-        this.currentPiece.setVelocity(0,100);
+        this.currentPiece.setVelocity(0,900);
 
         if (this.currentPiece.texture.key === this.mid2.name) {
             this.startPiece(this.top);
