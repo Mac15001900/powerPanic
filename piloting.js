@@ -29,6 +29,7 @@ var ScenePiloting = new Phaser.Class({
         this.load.image('meteor-small-1', 'assets/meteorBrown_small1.png');
         this.load.image('meteor-small-2', 'assets/meteorBrown_small2.png');
         this.load.image('background', 'assets/black-stars.png');
+        this.load.image('laser', 'assets/laserBlue01.png');
 
     },
 
@@ -37,7 +38,9 @@ var ScenePiloting = new Phaser.Class({
         ROTATION_SPEED: 0.005,
         EXHAUST_SPREAD: 20,
         MAX_ASTEROIDS: 10,
-        BASIC_COOLDOW: 1000,
+        BASIC_COOLDOW: 100,
+        BULLET_SPEED: 1000,
+        BULLET_RECOIL: 10,
     },
 
     create: function () {
@@ -94,6 +97,9 @@ var ScenePiloting = new Phaser.Class({
         console.log(this.emitter);
 
         this.asteroids = [];
+        this.bullets = [];
+
+        this.basicCooldown = 0;
 
     },
 
@@ -109,8 +115,8 @@ var ScenePiloting = new Phaser.Class({
         if(this.forwardKey.isDown) acceleration--;
         if(this.backwardsKey.isDown) acceleration++;
 
-        body.acceleration.x = -acceleration*Math.sin(Math.PI*body.rotation/180)*this.params.ENGINE_POWER;
-        body.acceleration.y = acceleration*Math.cos(Math.PI*body.rotation/180)*this.params.ENGINE_POWER;
+        body.acceleration.x = -acceleration*Math.sin(this.ship.rotation)*this.params.ENGINE_POWER;
+        body.acceleration.y = acceleration*Math.cos(this.ship.rotation)*this.params.ENGINE_POWER;
 
         if(this.forwardKey.isDown && !this.cameras.main.shakeEffect.isRunning){
             this.cameras.main.shakeEffect.start(100,.005,.005)
@@ -161,7 +167,23 @@ var ScenePiloting = new Phaser.Class({
             }
         }
 
-        //if()
+        if(this.fireKey.isDown && this.basicCooldown <= 0){
+            this.basicCooldown = this.params.BASIC_COOLDOW;            
+            var xDirection =  Math.sin(this.ship.rotation);
+            var yDirection = -Math.cos(this.ship.rotation);
+            var newBullet = this.physics.add.sprite(this.ship.x + xDirection*10,this.ship.y + yDirection*10,'laser');
+            newBullet.rotation = this.ship.rotation;
+            newBullet.setVelocity(this.params.BULLET_SPEED * xDirection, this.params.BULLET_SPEED *yDirection)
+            this.bullets.push(newBullet);
+            if(!this.cameras.main.shakeEffect.isRunning) this.cameras.main.shakeEffect.start(this.basicCooldown/2,.005,.005);
+
+            this.ship.body.velocity.x -= xDirection * this.params.BULLET_RECOIL;
+            this.ship.body.velocity.y -= yDirection * this.params.BULLET_RECOIL;
+        
+
+        }
+
+        this.basicCooldown -= dt;
 
     },
 
