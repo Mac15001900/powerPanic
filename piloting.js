@@ -36,6 +36,7 @@ var ScenePiloting = new Phaser.Class({
         ENGINE_POWER: 100,
         ROTATION_SPEED: 0.005,
         EXHAUST_SPREAD: 20,
+        MAX_ASTEROIDS: 10,
     },
 
     create: function () {
@@ -95,7 +96,7 @@ var ScenePiloting = new Phaser.Class({
         this.emitter.startFollow(this.ship);
         console.log(this.emitter);
 
-        
+        this.asteroids = [];
 
     },
 
@@ -128,6 +129,21 @@ var ScenePiloting = new Phaser.Class({
         this.ship.rotation += rotation * this.params.ROTATION_SPEED * dt;
         this.emitter.changeDirection(this.ship.body.rotation+90, this.params.EXHAUST_SPREAD);
         //this.ship.rotation = rotation;
+
+        //Asteroids
+        if(this.asteroids.length < this.params.MAX_ASTEROIDS){
+            if(Math.random()>0.98){
+                var x = Math.random() * CANVAS_WIDTH;
+                var y = Math.random() * CANVAS_HEIGHT;
+
+                var newAsteroid = this.physics.add.sprite(x,y,'meteor-big-1');
+                newAsteroid.setVelocity(Math.random()*100, Math.random()*100);
+                newAsteroid.setBounce(1, 1);
+                newAsteroid.setCollideWorldBounds(true);
+
+                this.asteroids.push(newAsteroid);
+            }
+        }
 
     },
 
