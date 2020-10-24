@@ -19,7 +19,7 @@ var ScenePiloting = new Phaser.Class({
         console.log('Preload in piloting');
         this.load.image('pilot-icon', 'assets/icon-pilot.png');
         this.load.image('ship', 'assets/ship.png');
-        this.load.image('friendly-ship', 'assets/ship-green.png.png');
+        this.load.image('friendly-ship', 'assets/ship-green.png');
         this.load.image('exhaust', 'assets/blue-particle.png');
         this.load.image('meteor-big-1', 'assets/meteorBrown_big1.png');
         this.load.image('meteor-big-2', 'assets/meteorBrown_big2.png');
@@ -42,6 +42,7 @@ var ScenePiloting = new Phaser.Class({
         BASIC_COOLDOW: 250,
         BULLET_SPEED: 1000,
         BULLET_RECOIL: 10,
+        MAX_FRIENDLY: 3,
     },
 
     create: function () {
@@ -198,6 +199,14 @@ var ScenePiloting = new Phaser.Class({
             this.ship.body.velocity.x -= xDirection * this.params.BULLET_RECOIL;
             this.ship.body.velocity.y -= yDirection * this.params.BULLET_RECOIL;       
 
+        }
+
+        if(this.friendly.length < this.params.MAX_FRIENDLY){
+            var pos = this.pickPositionsNearEdge(50);
+            var newShip = this.physics.add.sprite(pos.x,pos.y,'friendly-ship');
+            newShip.setScale(1/2);
+            newShip.setVelocity(200,0);
+            this.friendly.push(newShip);
         }
 
         /*for (var i = 0; i < this.bullets.length; i++) {
