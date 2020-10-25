@@ -281,7 +281,7 @@ var ScenePiloting = new Phaser.Class({
             this.friendlySpawnCooldown = this.params.FRIENDLY_SPAWN_COOLDOWN;
             var x,y,dx,dy;
             var side = Math.ceil(Math.random()*4);
-            var distance = 50;
+            var distance = -50;
             switch(side){
                 case 1:
                     x = Math.random() * (CANVAS_WIDTH - distance*2) + distance;
