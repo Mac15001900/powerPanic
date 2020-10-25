@@ -2,7 +2,7 @@
 
 wip/todo:
     - trigger restart on fail/success
-    
+
 */
 
 var SceneWeapons = new Phaser.Class({
@@ -19,20 +19,36 @@ var SceneWeapons = new Phaser.Class({
 
     preload: function () {
         console.log('Preload in weapons');
-        this.load.image('weapons-icon', 'assets/icon-laser.png');   
+        this.load.image('weapons-icon', 'assets/icon-laser.png');  
+        this.load.image('power-icon', 'assets/powerupBlue_bolt.png');
+
         this.load.image('missile-top', 'assets/missile-top.png');   
         this.load.image('missile-mid1', 'assets/missile-middle1.png');   
         this.load.image('missile-mid2', 'assets/missile-middle2.png');   
         this.load.image('missile-bottom', 'assets/missile-bottom.png');   
+        
         this.load.image('background', 'assets/black-stars.png');   
     },
 
     create: function () {
-        
+
+        this.background = this.add.image(0, 0, 'background').setOrigin(0).setScale(4);
+        this.background.depth = 100;
+
+        this.instrutions = this.add.text(20, 64, '', { font: "24px Arial", fill: "#19de65" });
+        this.instrutions.depth = 101;        
+
+        this.instrutions.text = "You're job is to build a missile!\nUse the spacebar to drop a piece of the missile\nStack 4 pieces and a winner is you!";   
+
         this.isPlaying = false;
         var didWin = false;
 
         var g1 = this.add.grid(350, 399, 100, 400, 4, 4, 0x057605);
+        
+        this.powerGain = 10;
+        this.add.image(32,CANVAS_HEIGHT-16,'power-icon');
+        this.powerBar = this.add.graphics();
+        this.power = 0;
 
         var text = this.add.text(200, 100, '', { font: "32px Arial", fill: "#19de65" });
         text.text = 'You are in weapons';
@@ -61,18 +77,17 @@ var SceneWeapons = new Phaser.Class({
             name: 'missile-top'
         };
 
-        this.initializeMissileGame(this.bottom);
-
-        this.background = this.add.image(0, 0, 'background').setOrigin(0).setScale(4);
-        this.background.depth = 100;
-
-        this.instrutions = this.add.text(20, 64, '', { font: "24px Arial", fill: "#19de65" });
-        this.instrutions.depth = 101;        
-
-        this.instrutions.text = "You're job is to build a missile!\nUse the spacebar to drop a piece of the missile\nStack 4 pieces and a winner is you!";        
+        this.initializeMissileGame(this.bottom);     
     },
 
     update: function (timestep, dt) {
+
+        this.power += this.powerGain*dt/1000;
+        this.powerBar.clear();
+        this.powerBar.fillStyle(0x5555ff, 1);
+        this.powerBar.fillRect(16, CANVAS_HEIGHT-this.power*5 - 16, 32, this.power*5);
+        if(this.power > 100) endGame('Power overload! The weapons system did a kaboom!!');
+
         if(gameStatus !== GS.GAME_STARTED && !DEBUG_IGNORE_GAME_STATE) return;
         this.instrutions.setVisible(false);
         this.background.depth = -10;
