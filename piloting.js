@@ -20,7 +20,7 @@ var ScenePiloting = new Phaser.Class({
         this.load.image('pilot-icon', 'assets/icon-pilot.png');
         this.load.image('ship', 'assets/ship.png');
         this.load.image('friendly-ship', 'assets/ship-green.png');
-        this.load.image('exhaust', 'assets/blue-particle.png');
+        this.load.image('exhaust-particle', 'assets/blue-particle.png');
         this.load.image('explosion-particle', 'assets/red-particle.png');
 
         this.load.image('meteor-big-1', 'assets/meteorBrown_big1.png');
@@ -112,7 +112,7 @@ var ScenePiloting = new Phaser.Class({
         console.log(this.ship);
 
         //Exhaust
-        var particles = this.add.particles('exhaust');
+        var particles = this.add.particles('exhaust-particle');
 
         this.emitter = particles.createEmitter({
             speed: 500,
@@ -127,6 +127,17 @@ var ScenePiloting = new Phaser.Class({
         };
         this.emitter.startFollow(this.ship);
         console.log(this.emitter);
+
+        var explosionParticles = this.add.particles('explosion-particle');
+
+        this.explosionEmitter = explosionParticles.createEmitter({
+            on: false,
+            speed: 500,
+            scale: { start: 1, end: 0 },
+            blendMode: 'ADD',
+        });
+
+        this.explosionSprite = this.physics.add.sprite(CANVAS_HEIGHT/2,CANVAS_WIDTH/2,'ship');
 
         this.missle = this.physics.add.sprite(0,0,'missle');
         this.missle.setVisible(false);
@@ -317,7 +328,10 @@ var ScenePiloting = new Phaser.Class({
             if(this.effects.missleTimer < 0){
                 this.effects.missleActive = false;
                 this.missle.setVisible(false);
-                
+                //Explosion!
+
+
+
             }
         }
 
