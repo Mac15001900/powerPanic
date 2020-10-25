@@ -38,7 +38,7 @@ var SceneWeapons = new Phaser.Class({
         this.instrutions = this.add.text(20, 64, '', { font: "24px Arial", fill: "#19de65" });
         this.instrutions.depth = 101;        
 
-        this.instrutions.text = "You're job is to build a missile!\nUse the spacebar to drop a piece of the missile\nStack 4 pieces and a winner is you!";   
+        this.instrutions.text = "Your job is to build a missile!\nUse the spacebar to drop a piece of the missile\nStack 4 pieces and a winner is you!";   
 
         this.isPlaying = false;
         var didWin = false;
