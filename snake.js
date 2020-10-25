@@ -9,8 +9,8 @@ const DIRECTION = {
 };
 
 const DIMS = {
-  STEPS_X: 43,
-  STEPS_Y: 35
+  STEPS_X: 44,
+  STEPS_Y: 33
 }
 
 
@@ -24,6 +24,7 @@ var SceneSnake = new Phaser.Class({
     Phaser.Scene.call(this, { key: 'SceneSnake' });
     this.icon;
     this.backKey;
+    this.spaceKey;
 
     this.snake;
     this.food;
@@ -36,19 +37,38 @@ var SceneSnake = new Phaser.Class({
     this.load.image('snake-icon', 'assets/icon-snake.png');
     this.load.image('foodBlue', 'assets/blue-particle.png');
     this.load.image('foodGreen', 'assets/green-orb.png');
-    this.load.image('body', 'assets/body.png');
+    this.load.image('body', 'assets/body2.png');
+    this.load.image('power-icon', 'assets/powerupBlue_bolt.png')
+    /*
+    this.load.image('power-icon', 'assets/powerupBlue_bolt.png');
+    this.load.image('confusion', 'assets/confusion.png');
+    */
   },
 
   create: function () {
-    var background = this.add.image(64, 64, 'background').setOrigin(0).setScale(1);
+    this.speedKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    var powerIcon = this.add.image(32,CANVAS_HEIGHT-16,'power-icon');
+    powerIcon.depth = 5;
+    this.powerBar = this.add.graphics();
+    // 512 x 512
+    var background = this.add.image(64, 64, 'background').setOrigin(0);
+    background.setSize(672, 472);
+    background.setDisplaySize(672, 472);
     background.depth = -10;
-    background.scaleX = 1.375;
-    var text = this.add.text(200, 0, '', { font: "32px Arial", fill: "#19de65" });
-    text.text = 'You are in snake';
+
+    /*
+    this.confusion = this.add.image(0, 0, 'confusion').setOrigin(0);
+    this.confusion.depth = 9001;
+    this.confusion.setVisible(false);
+    */
+
+    var text = this.add.text(200, 0, '', { font: "28px Arial", fill: "#19de65" });
+    text.text = 'Your power is becoming worrisome!';
     this.icon = this.add.image(32,32,'snake-icon');
     this.icon.scaleX = 1 / 8;
     this.icon.scaleY = 1 / 8;
     this.backKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+    this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACEBAR);
 
     var Food = new Phaser.Class({
 
@@ -121,38 +141,33 @@ var SceneSnake = new Phaser.Class({
       },
 
       move: function (time, scene) {
-        /**
-        * Based on the heading property (which is the direction the pgroup pressed)
-        * we update the headPosition value accordingly.
-        *
-        * The Math.wrap call allow the snake to wrap around the screen, so when
-        * it goes off any of the sides it re-appears on the other.
-        */
         switch (this.heading) {
           case DIRECTION.LEFT:
           this.headPosition.x = Phaser.Math
-            .Wrap(this.headPosition.x - 1, 4, 43);
+            .Wrap(this.headPosition.x - 1, 4, 44);
           break;
 
           case DIRECTION.RIGHT:
           this.headPosition.x = Phaser.Math
-            .Wrap(this.headPosition.x + 1, 4, 43);
+            .Wrap(this.headPosition.x + 1, 4, 44);
           break;
 
           case DIRECTION.UP:
           this.headPosition.y = Phaser.Math
-            .Wrap(this.headPosition.y - 1, 4, 35);
+            .Wrap(this.headPosition.y - 1, 4, 33);
           break;
 
           case DIRECTION.DOWN:
           this.headPosition.y = Phaser.Math
-            .Wrap(this.headPosition.y + 1, 4, 35);
+            .Wrap(this.headPosition.y + 1, 4, 33);
           break;
         }
 
         this.direction = this.heading;
 
-        this.body.create(this.tail.x, this.tail.y, 'body').setOrigin(0);
+        //this.body.create(this.tail.x, this.tail.y, 'body').setOrigin(0);
+
+        this.grow();
 
         //  Update the body segments and place the last coordinate into this.tail
         Phaser.Actions.ShiftPosition(this.body.getChildren(), this.headPosition.x * 16, this.headPosition.y * 16, 1, this.tail);
@@ -163,12 +178,13 @@ var SceneSnake = new Phaser.Class({
         var hitBody = Phaser.Actions.GetFirst(this.body.getChildren(), { x: this.head.x, y: this.head.y }, 1);
 
         if (hitBody) {
-          sendMessage('snakeEats',{});
+          sendMessage('snakeDies',{});
           console.log('dead');
           this.alive = false;
 
           return false;
         } else {
+          //this.speed -= 5;
           //  Update the timer ready for the next movement
           this.moveTime = time + this.speed;
           return true;
@@ -177,13 +193,12 @@ var SceneSnake = new Phaser.Class({
 
       grow: function () {
         var newPart = this.body.create(this.tail.x, this.tail.y, 'body');
-
         newPart.setOrigin(0);
       },
 
       collideWithFood: function (food) {
         if (this.head.x === food.x && this.head.y === food.y) {
-          this.grow();
+          // this.grow();
 
           food.eat();
 
@@ -198,23 +213,21 @@ var SceneSnake = new Phaser.Class({
       },
 
       updateGrid: function (grid) {
-        console.log(grid);
         //  Remove all body pieces from valid positions list
         this.body.children.each(function (segment) {
-          var bx = segment.x / 16;
-          var by = segment.y / 16;
+          var bx = Math.floor(segment.x / 16);
+          var by = Math.floor(segment.y / 16);
           console.log(grid[by][bx]);
           grid[by][bx] = false;
         });
-
         return grid;
       }
 
     });
 
-    this.food = new Food(this, 8, 12);
+    this.food = new Food(this, 16, 18);
 
-    this.snake = new Snake(this, 32, 30);
+    this.snake = new Snake(this, 8, 8);
 
     //  Create our keyboard controls
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -227,17 +240,11 @@ var SceneSnake = new Phaser.Class({
       this.scene.start('SceneStart');
       switchToScene(this,'SceneStart');
     }
-    if (!this.snake.alive) {
-      return;
-    }
+    if(gameStatus !== GS.GAME_STARTED && !DEBUG_IGNORE_GAME_STATE) return;
 
-    /**
-    * Check which key is pressed, and then change the direction the snake
-    * is heading based on that. The checks ensure you don't double-back
-    * on yourself, for example if you're moving to the right and you press
-    * the LEFT cursor, it ignores it, because the only valid directions you
-    * can move in at that time is up and down.
-    */
+    if (!this.snake.alive) {
+      this.scene.restart();
+    }
     if (this.cursors.left.isDown) {
       this.snake.faceLeft();
     } else if (this.cursors.right.isDown) {
@@ -248,13 +255,24 @@ var SceneSnake = new Phaser.Class({
     } else if (this.cursors.down.isDown) {
       this.snake.faceDown();
     }
-
+    if(this.speedKey.isDown) {
+      power -= 20*dt/1000;
+      this.snake.speed = 30;
+      if(!this.cameras.main.shakeEffect.isRunning) this.cameras.main.shakeEffect.start(100,.005,.005);
+    }
+    else this.snake.speed = 100;
     if (this.snake.update(timestep)) {
       //  If the snake updated, we need to check for collision against food
       if (this.snake.collideWithFood(this.food)) {
         this.repositionFood();
       }
     }
+
+    power += 5*dt/1000;
+    this.powerBar.clear();
+    this.powerBar.fillStyle(0x5555ff, 1);
+    this.powerBar.fillRect(16, CANVAS_HEIGHT-power*5 - 16, 32, power*5);
+    if(power > 100) endGame('Navigation has exploded');
   },
 
   receiveMessage: function (data) {
@@ -268,9 +286,9 @@ var SceneSnake = new Phaser.Class({
     //  A Grid we'll use to reposition the food each time it's eaten
     var testGrid = [];
 
-    for (let y = 0; y < 30; y++) {
+    for (let y = 0; y < 33; y++) {
       testGrid[y] = [];
-      for (let x = 0; x < 30; x++) {
+      for (let x = 0; x < 46; x++) {
         testGrid[y][x] = true;
       }
     }
@@ -280,8 +298,8 @@ var SceneSnake = new Phaser.Class({
     //  Purge out false positions
     var validLocations = [];
 
-    for (let y = 0; y < 34; y++) {
-      for (let x = 0; x < 43; x++) {
+    for (let y = 4; y < 30; y++) {
+      for (let x = 4; x < 40; x++) {
         if (testGrid[y][x] === true) {
           //  Is this position valid for food? If so, add it here ...
           validLocations.push({ x: x, y: y });
@@ -304,7 +322,5 @@ var SceneSnake = new Phaser.Class({
       return false;
     }
   },
-
-
 
 });

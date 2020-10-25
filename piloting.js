@@ -41,6 +41,11 @@ var ScenePiloting = new Phaser.Class({
         this.load.image('frienship-icon', 'assets/ship-green-mini.png');
         this.load.image('power-icon', 'assets/powerupBlue_bolt.png');
 
+        this.load.image('ship-minus-icon', 'assets/ship_minus.png');
+        this.load.image('ship-plus-icon', 'assets/ship_plus.png');
+        this.load.image('asteroid-minus-icon', 'assets/meteor_minus.png');
+        this.load.image('asteroid-plus-icon', 'assets/meteor_plus.png');
+
 
 
     },
@@ -114,6 +119,21 @@ var ScenePiloting = new Phaser.Class({
         this.leftKey = createKey(this,'A');
         this.rightKey = createKey(this,'D');
         this.fireKey = createKey(this,'SPACE');
+
+        
+        this.shipMinusIcon = this.add.image(CANVAS_WIDTH-64,64, 'ship-minus-icon');
+        this.shipPlusIcon = this.add.image(CANVAS_WIDTH-64,64, 'ship-plus-icon');
+        this.asteroidMinusIcon = this.add.image(CANVAS_WIDTH-64,64, 'asteroid-minus-icon');
+        this.asteroidPlusIcon = this.add.image(CANVAS_WIDTH-64,64, 'asteroid-plus-icon');
+        this.shipMinusIcon.setVisible(false);
+        this.shipPlusIcon.setVisible(false);
+        this.asteroidMinusIcon.setVisible(false);
+        this.asteroidPlusIcon.setVisible(false);
+        this.shipMinusIcon.depth = 5;
+        this.shipPlusIcon.depth = 5;
+        this.asteroidMinusIcon.depth = 5;
+        this.asteroidPlusIcon.depth = 5;
+
 
         this.ship = this.physics.add.sprite(CANVAS_HEIGHT/2,CANVAS_WIDTH/2,'ship');
         this.ship.body.angularDrag = 0;
@@ -410,6 +430,8 @@ var ScenePiloting = new Phaser.Class({
                 this.explosionEmitter.setPosition(this.missle.x,this.missle.y);
                 this.explosionEmitter.explode();
 
+                this.cameras.main.shakeEffect.start(600,.015,.015);
+
                 var killList = [];
                 for (var i = 0; i < this.asteroids.getLength(); i++) {
                     var target = this.asteroids.children.entries[i];
@@ -476,12 +498,25 @@ var ScenePiloting = new Phaser.Class({
                 this.missle.setVelocity(Math.sin(this.ship.rotation)*this.params.MISSLE_SPEED, -Math.cos(this.ship.rotation)*this.params.MISSLE_SPEED);
                 break;
             case 'commsResult':
-                this.effects.shipAmount = data.content ? 1 : -1;
+                this.effects.shipAmount = data.content ? -1 : 1;
                 this.effects.shipTimeLeft = this.params.SHIP_EFFECT_TIME;
+                if(data.content){
+                    this.shipMinusIcon.setVisible(true);
+                    this.time.delayedCall(1000, function(){this.shipMinusIcon.setVisible(false)}, [], this);
+                }else{
+                    this.shipPlusIcon.setVisible(true);
+                    this.time.delayedCall(1000, function(){this.shipPlusIcon.setVisible(false)}, [], this);
+                }
+                break;
+            case 'snakeEats':
+                this.effects.asteroidAmount = -1;
+                this.effects.asteroidTimeLeft = this.params.ASTEROID_EFFECT_TIME;
+                this.asteroidsMinusIcon.setVisible(true);
+                this.time.delayedCall(1000, function(){this.asteroidsMinusIcon.setVisible(false)}, [], this);
                 break;
             case 'snakeDies':
-                this.effects.asteroidAmount = 1;
-                this.effects.asteroidTimeLeft = this.params.ASTEROID_EFFECT_TIME;
+                this.effects.confisionLeft = 1500;
+                break;
         }
     },
 
