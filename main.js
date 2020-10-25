@@ -193,7 +193,7 @@ function getRoom() {
     room = prompt("Enter the room name to join or create a room.","");
       
     while(!room){
-        var room = prompt("Enter the room name (it can'this be empty) to join or create a room.","");
+        var room = prompt("Enter the room name (it can't be empty) to join or create a room.","");
     }
     return(ROOM_NAME_BASE+room);
 }
