@@ -80,6 +80,10 @@ var SceneWeapons = new Phaser.Class({
     },
 
     update: function (timestep, dt) {
+        if(this.backKey.isDown) {
+            console.log('Switching back to menu');
+            this.scene.start('SceneStart');
+        }
         if(gameStatus !== GS.GAME_STARTED && !DEBUG_IGNORE_GAME_STATE) return;
         this.instrutions.setVisible(false);
         this.background.depth = -10;
@@ -90,11 +94,6 @@ var SceneWeapons = new Phaser.Class({
         this.powerBar.fillStyle(0x5555ff, 1);
         this.powerBar.fillRect(16, CANVAS_HEIGHT-power*5 - 16, 32, power*5);
         if(power > 100) endGame('Power overload! The weapons system did a kaboom!!');        
-
-        if(this.backKey.isDown) {
-            console.log('Switching back to menu');
-            this.scene.start('SceneStart');
-        }
 
         if(Phaser.Input.Keyboard.JustDown(this.spaceKey))
             this.dropPiece();     

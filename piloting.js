@@ -511,8 +511,8 @@ var ScenePiloting = new Phaser.Class({
             case 'snakeEats':
                 this.effects.asteroidAmount = -1;
                 this.effects.asteroidTimeLeft = this.params.ASTEROID_EFFECT_TIME;
-                this.asteroidsMinusIcon.setVisible(true);
-                this.time.delayedCall(1000, function(){this.asteroidsMinusIcon.setVisible(false)}, [], this);
+                this.asteroidMinusIcon.setVisible(true);
+                this.time.delayedCall(1000, function(){this.asteroidMinusIcon.setVisible(false)}, [], this);
                 break;
             case 'snakeDies':
                 this.effects.confisionLeft = 1500;
