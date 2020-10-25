@@ -3,6 +3,7 @@ const DEBUG_SHOW_HITBOXES = false;
 const DEBUG_USE_DEV_SERVER = true;
 const DEBUG_USE_RANDOM_SERVER = false;
 const DEBUG_RANDOMISE_USERNAME = true;
+const DEBUG_IGNORE_GAME_STATE = true;
 
 var SceneStart = new Phaser.Class({
 
@@ -123,8 +124,8 @@ function setInstructions(text) {
     document.querySelector('#instructions').innerHTML = text;
 }
 
-const CANVAS_HEIGHT = 800;
-const CANVAS_WIDTH = 600;
+const CANVAS_WIDTH = 800;
+const CANVAS_HEIGHT = 600;
 const GS = {
     NOT_CONNECTED: 0,
     CONNECTED: 1,
@@ -136,8 +137,8 @@ var gameStatus = GS.NOT_CONNECTED;
 
 var config = {
         type: Phaser.AUTO,
-        width: 800,
-        height: 600,
+        width: CANVAS_WIDTH,
+        height: CANVAS_HEIGHT,
         physics: {
             default: 'arcade',
             arcade: {
@@ -277,6 +278,7 @@ drone.on('open', error => {
                     break;
                 case 'endGame': //Sent when the game ends. Scenes should listen and react to this
                     gameStatus = GS.GAME_OVER;
+                    alert('Game over\n'+data.content);
                     break;
                 default: console.log('Unknown message type received: '+data.type)
 

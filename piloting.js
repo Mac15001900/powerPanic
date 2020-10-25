@@ -57,6 +57,10 @@ var ScenePiloting = new Phaser.Class({
         MISSLE_TIME: 500,
         MISSLE_SPEED: 500,
         MISSLE_RADIUS: 200,
+        FRIENSHIP_LOSS_ON_KILL: 10,
+        FRIENSHIP_LOSS_ON_MISS: 1,
+        POWER_GAIN: 3,
+        POWER_USAGE: 6,
     },
 
     effects: {
@@ -70,19 +74,29 @@ var ScenePiloting = new Phaser.Class({
     },
 
     create: function () {
-        var background = this.add.image(0, 0, 'background').setOrigin(0).setScale(4);
-        background.depth = -10;
+        this.background = this.add.image(0, 0, 'background').setOrigin(0).setScale(4);
+        this.background.depth = 100;
 
         this.confusion = this.add.image(0, 0, 'confusion').setOrigin(0);
         this.confusion.depth = 9001;
         this.confusion.setVisible(false);
 
-        var text = this.add.text(200, 200, '', { font: "32px Arial", fill: "#19de65" });
+        this.instrutions = this.add.text(20, 64, '', { font: "24px Arial", fill: "#19de65" });
+        this.instrutions.depth = 101;        
+
+        this.instrutions.text = "You are in the pilots seat\n"
+            + "Your job is to pilot the ship, making sure it survives and doesn't cause\ntoo many casualties.\n"
+            + "You can move with W,A,S,D and shoot with Spacebar\n"
+            + "Using your thrusters also gets rid of power.\n"
+            + "Your teammates' actions will affect your situation, make sure you\ncommunicate with them!\n"
+            + "When your teammates are ready, press Spacebar to start the game\n\n"
+            + "Good luck.";
+            //+ "\n"
+
         var createKey =  function(scene, key){
                 return scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes[key]);
             };
 
-        text.text = 'You are in piloting';
         this.icon = this.add.image(32,32,'pilot-icon');
         this.icon.scaleX = 1/8;
         this.icon.scaleY = 1/8;
@@ -146,6 +160,8 @@ var ScenePiloting = new Phaser.Class({
 
         this.missle = this.physics.add.sprite(0,0,'missle');
         this.missle.setVisible(false);
+        this.missle.setBounce(1);
+        this.missle.setCollideWorldBounds(true);
 
 
 
@@ -160,6 +176,12 @@ var ScenePiloting = new Phaser.Class({
         this.asteroidSpawnCooldown = this.params.ASTEROID_SPAWN_COOLDOWN;
         this.friendlySpawnCooldown = this.params.FRIENDLY_SPAWN_COOLDOWN;
 
+        this.heathBar = this.add.graphics();
+        this.frienshipBar = this.add.graphics();
+        this.powerBar = this.add.graphics();
+        this.heath = 100;
+        this.frienship = 100;
+        this.power = 0;
     },
 
     hitAsteroid: function(bullet, asteroid){
@@ -178,6 +200,7 @@ var ScenePiloting = new Phaser.Class({
 
     killFriendly: function(target){
         console.log('Friendy ship killed :(');
+        this.frienship -= 10;
         this.friendly.remove(target, true, true);
     },
 
@@ -214,14 +237,21 @@ var ScenePiloting = new Phaser.Class({
     },
 
     update: function (timestep, dt) {
-        this.asteroids.runChildUpdate = true;
-        this.asteroids.preUpdate(timestep,dt);
-
-
         if(this.backKey.isDown){
             console.log('Switching back to menu');
             switchToScene(this,'SceneStart');
         }
+        if(gameStatus !== GS.GAME_STARTED && !DEBUG_IGNORE_GAME_STATE) {
+            if(this.fireKey.isDown && gameStatus === GS.CONNECTED){
+                sendMessage('startGame',{});
+                gameStatus === GS.GAME_STARTED;
+            }
+            return;
+        }
+
+        this.instrutions.setVisible(false);
+        this.background.depth = -10;
+
         var body = this.ship.body;
         var xDirection =  Math.sin(this.ship.rotation);
         var yDirection = -Math.cos(this.ship.rotation);
@@ -229,13 +259,16 @@ var ScenePiloting = new Phaser.Class({
 
         var acceleration = 0;
         if(this.forwardKey.isDown) acceleration++;
-        if(this.backwardsKey.isDown) acceleration--;
+        //if(this.backwardsKey.isDown) acceleration--;
 
         body.acceleration.x = acceleration*xDirection*this.params.ENGINE_POWER;
         body.acceleration.y = acceleration*yDirection*this.params.ENGINE_POWER;
 
-        if(this.forwardKey.isDown && !this.cameras.main.shakeEffect.isRunning){
-            this.cameras.main.shakeEffect.start(100,.005,.005)
+        if(this.forwardKey.isDown){
+            if(!this.cameras.main.shakeEffect.isRunning) this.cameras.main.shakeEffect.start(100,.005,.005);
+
+            this.power -= this.params.POWER_USAGE * dt/1000;
+            if(this.power<=0) this.power=0;
         }
         this.emitter.on = this.forwardKey.isDown;
             
@@ -264,7 +297,7 @@ var ScenePiloting = new Phaser.Class({
         }
 
         if(this.fireKey.isDown && this.laserCooldown <= 0){
-            this.laserCooldown = this.params.BASIC_COOLDOW;            
+            this.laserCooldown = this.params.BASIC_COOLDOW;   
             this.bullets.add(this.physics.add.sprite(this.ship.x + xDirection*10,this.ship.y + yDirection*10,'laser'));
             var newBullet = this.bullets.children.entries[this.bullets.children.entries.length-1];;
             newBullet.rotation = this.ship.rotation;
@@ -323,6 +356,7 @@ var ScenePiloting = new Phaser.Class({
         for (var i = 0; i < this.bullets.getLength(); i++) {
             if(this.isOutOfBounds(this.bullets.children.entries[i], 200)){
                 this.bullets.remove(this.bullets.children.entries[i],true,true);
+                this.frienship -= this.params.FRIENSHIP_LOSS_ON_MISS;
             }
         }
 
@@ -376,6 +410,32 @@ var ScenePiloting = new Phaser.Class({
             this.explosionSprite.alpha = 1 + this.effects.missleTimer/1000;
         }
 
+        this.power += this.params.POWER_GAIN*dt/1000;
+        if(this.power > 100) this.endGame('Engines exploded');
+        if(this.heath <= 0) this.endGame('The ship got destroyed');
+        if(this.frienship <= 0) this.endGame('You killed too many civilians.');
+
+
+        this.heathBar.clear();
+        this.heathBar.fillStyle(0xff1111, 1);
+        this.heathBar.fillRect(16, CANVAS_HEIGHT-this.heath*5 - 16, 32, this.heath*5);
+
+        this.frienshipBar.clear();
+        this.frienshipBar.fillStyle(0x11ff11, 1);
+        this.frienshipBar.fillRect(16 + 48, CANVAS_HEIGHT-this.frienship*5 - 16, 32, this.frienship*5);
+
+        this.powerBar.clear();
+        this.powerBar.fillStyle(0x5555ff, 1);
+        this.powerBar.fillRect(16 + 48*2, CANVAS_HEIGHT-this.power*5 - 16, 32, this.power*5);
+
+    },
+
+    endGame: function(message){
+        if(gameStatus === GS.GAME_OVER) return;
+        console.log('Ending the game');
+        sendMessage('endGame',message);
+        gameStatus = GS.GAME_OVER;
+        //TODO switch to game over scene
     },
 
     receiveMessage: function (data) {
