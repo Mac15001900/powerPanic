@@ -37,8 +37,8 @@ var SceneStart = new Phaser.Class({
     },
 
     create: function() {
-        text = this.add.text(200, 200, '', { font: "32px Arial", fill: "#19de65" });
-        text.text = 'This is a start menu thingy.\n Use W,N,P,C,S and A to switch to stations.';
+        text = this.add.text(32, 32, '', { font: "16px Arial", fill: "#19de65" });
+        text.text = 'This is a start menu thingy.\n Use W,N,P,C,S and A to switch to stations.'; //TODO Add lore and good instructions here
 
         this.add.image(400, 300, 'sky');
 
