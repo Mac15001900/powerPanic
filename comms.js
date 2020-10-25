@@ -139,15 +139,14 @@ this.passwordPos.sort(function(a,b){return a-b});
             if(this.inputt.text==this.password){
                 this.inputt.text='';
                 this.pomp.text = 'CORRECT!';
-                //RIGHT ANSWER
-
+                sendMessage('commsResult',true);
+                this.time.delayedCall(3000, function(){this.scene.restart()}, [], this);
             }
             else{
                 this.inputt.text='';
                 this.pomp.text='INCORRECT';
-                //WRONG ANSWER
-
-
+                sendMessage('commsResult',false);
+                this.time.delayedCall(3000, function(){this.scene.restart()}, [], this);
               }
         })
 
