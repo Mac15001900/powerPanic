@@ -34,7 +34,7 @@ var SceneSnake = new Phaser.Class({
   preload: function () {
     console.log('Preload in snake');
     this.load.image('background', 'assets/deep-space.jpg');
-    this.load.image('snake-icon', 'assets/icon-snake.png');
+    this.load.image('snake-icon', 'assets/icon-navigation.png');
     this.load.image('foodBlue', 'assets/blue-particle.png');
     this.load.image('foodGreen', 'assets/green-orb.png');
     this.load.image('body', 'assets/body2.png');
