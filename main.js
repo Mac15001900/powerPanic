@@ -32,7 +32,7 @@ var SceneStart = new Phaser.Class({
         this.load.image('icon-shields', 'assets/icon-shield.png');
         this.load.image('icon-comms', 'assets/satellite-communication.png');
         this.load.image('square', 'assets/square.png');
-        console.log(game)   ;
+        console.log(game);
         console.log(this.currentStation);
     },
 

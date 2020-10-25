@@ -48,7 +48,6 @@ var SceneWeapons = new Phaser.Class({
         this.powerGain = 10;
         this.add.image(32,CANVAS_HEIGHT-16,'power-icon');
         this.powerBar = this.add.graphics();
-        this.power = 0;
 
         var text = this.add.text(200, 100, '', { font: "32px Arial", fill: "#19de65" });
         text.text = 'You are in weapons';
@@ -58,8 +57,7 @@ var SceneWeapons = new Phaser.Class({
         this.backKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
 
         this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-
-        var theGroup;
+        
         this.theGroup = this.add.group();
 
         var currentPiece;
@@ -82,11 +80,11 @@ var SceneWeapons = new Phaser.Class({
 
     update: function (timestep, dt) {
 
-        this.power += this.powerGain*dt/1000;
+        power += this.powerGain*dt/1000;
         this.powerBar.clear();
         this.powerBar.fillStyle(0x5555ff, 1);
-        this.powerBar.fillRect(16, CANVAS_HEIGHT-this.power*5 - 16, 32, this.power*5);
-        if(this.power > 100) endGame('Power overload! The weapons system did a kaboom!!');
+        this.powerBar.fillRect(16, CANVAS_HEIGHT-power*5 - 16, 32, power*5);
+        if(power > 100) endGame('Power overload! The weapons system did a kaboom!!');
 
         if(gameStatus !== GS.GAME_STARTED && !DEBUG_IGNORE_GAME_STATE) return;
         this.instrutions.setVisible(false);
@@ -101,11 +99,7 @@ var SceneWeapons = new Phaser.Class({
             this.dropPiece();     
             
         if (this.didWin == true){
-            this.time.delayedCall(3000, function(){
-                this.scene.restart()
-            }, 
-            [], 
-            this);
+            this.time.delayedCall(3000, function(){this.scene.restart()},[],this);
         }
             
     },
@@ -132,8 +126,7 @@ var SceneWeapons = new Phaser.Class({
             y = 300;
             i = 'missile-mid2';
             v = -400;
-        } else if (piece.name === this.top.name) {
-            console.log("TEST---TEST---TEST---TEST---TEST---");
+        } else if (piece.name === this.top.name) {            
             x = 700;
             y = 200;
             i = 'missile-top';
