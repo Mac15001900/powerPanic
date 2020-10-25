@@ -45,8 +45,9 @@ var SceneWeapons = new Phaser.Class({
 
         var g1 = this.add.grid(350, 399, 100, 400, 4, 4, 0x057605);
         
-        this.powerGain = 10;
-        this.add.image(32,CANVAS_HEIGHT-16,'power-icon');
+        this.powerGain = 3;
+        var powerIcon = this.add.image(32,CANVAS_HEIGHT-16,'power-icon');
+        powerIcon.depth = 5;
         this.powerBar = this.add.graphics();
 
         var text = this.add.text(200, 100, '', { font: "32px Arial", fill: "#19de65" });
@@ -169,6 +170,21 @@ var SceneWeapons = new Phaser.Class({
             this.startPiece(this.mid2);
         } else if (this.currentPiece.texture.key === this.bottom.name) {
             this.startPiece(this.mid1);            
+        } else {
+            this.time.delayedCall(1000, function(){this.checkVictory(this.currentPiece)}, [], this);
+        }
+    },
+
+    checkVictory: function(piece){
+        if(piece.y<CANVAS_HEIGHT-160){
+            console.log('Vicotory!');
+            power-=30;
+            if(power<0) power=0;
+            sendMessage('missile');
+            this.scene.restart();
+        }else{
+            console.log('Not Victory!');
+            this.scene.restart();
         }
     },
 
