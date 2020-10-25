@@ -52,10 +52,11 @@ var ScenePiloting = new Phaser.Class({
         MAX_FRIENDLY: 15,
         FRIENDLY_SPEED: 50,
         FRIENDLY_SIDE_SPEED: 25,
-        ASTEROID_SPAWN_COOLDOWN: 300,
+        ASTEROID_SPAWN_COOLDOWN: 1000,
         FRIENDLY_SPAWN_COOLDOWN: 1000,
         MISSLE_TIME: 500,
         MISSLE_SPEED: 500,
+        MISSLE_RADIUS: 200,
     },
 
     effects: {
@@ -162,14 +163,22 @@ var ScenePiloting = new Phaser.Class({
     },
 
     hitAsteroid: function(bullet, asteroid){
-        this.asteroids.remove(asteroid,true, true);
+        this.killAsteroid(asteroid);
         this.bullets.remove(bullet,true, true);
     },
 
+    killAsteroid: function(asteroid){
+        this.asteroids.remove(asteroid,true, true);
+    },
+
     hitFriendly: function(bullet, target){
-        console.log('Friendy ship shot');
         this.bullets.remove(bullet, true, true);
-        this.friendly.remove(target, true, true);        
+        this.killFriendly(target);
+    },
+
+    killFriendly: function(target){
+        console.log('Friendy ship killed :(');
+        this.friendly.remove(target, true, true);
     },
 
     pickPositionsNearEdge: function(distance){
@@ -198,6 +207,10 @@ var ScenePiloting = new Phaser.Class({
 
     isOutOfBounds: function(pos,margin){
          return pos.x<-margin || pos.x>CANVAS_WIDTH+margin || pos.y<-margin || pos.y>CANVAS_HEIGHT+margin;
+    },
+
+    distanceBetween: function(p1,p2){
+        return Math.sqrt(Math.pow(p1.x-p2.x,2) + Math.pow(p1.y-p2.y,2));
     },
 
     update: function (timestep, dt) {
@@ -335,6 +348,29 @@ var ScenePiloting = new Phaser.Class({
 
                 this.explosionEmitter.setPosition(this.missle.x,this.missle.y);
                 this.explosionEmitter.explode();
+
+                var killList = [];
+                for (var i = 0; i < this.asteroids.getLength(); i++) {
+                    var target = this.asteroids.children.entries[i];
+                    if(this.distanceBetween(target,this.missle) < this.params.MISSLE_RADIUS){
+                        killList.push(target);
+                    }
+                }
+                for (var i = 0; i < killList.length; i++) {
+                    this.killAsteroid(killList[i]);
+                }
+
+                killList = [];
+                for (var i = 0; i < this.friendly.getLength(); i++) {
+                    var target = this.friendly.children.entries[i];
+                    if(this.distanceBetween(target,this.missle) < this.params.MISSLE_RADIUS){
+                        killList.push(target);
+                    }
+                }
+                for (var i = 0; i < killList.length; i++) {
+                    this.killFriendly(killList[i]);
+                }
+
             }
         } else {
             this.explosionSprite.alpha = 1 + this.effects.missleTimer/1000;
