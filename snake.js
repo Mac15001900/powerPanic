@@ -9,7 +9,8 @@ const DIRECTION = {
 };
 
 const DIMS = {
-
+  STEPS_X: 43,
+  STEPS_Y: 35
 }
 
 
@@ -27,24 +28,24 @@ var SceneSnake = new Phaser.Class({
     this.snake;
     this.food;
     this.cursors;
-
-    //  Direction consts
-
-
   },
 
   preload: function () {
     console.log('Preload in snake');
-    this.load.image('shields-icon', 'assets/icon-snake.png');
-    this.load.image('food', 'assets/food.png');
+    this.load.image('background', 'assets/deep-space.jpg');
+    this.load.image('snake-icon', 'assets/icon-snake.png');
+    this.load.image('foodBlue', 'assets/blue-particle.png');
+    this.load.image('foodGreen', 'assets/green-orb.png');
     this.load.image('body', 'assets/body.png');
-
   },
 
   create: function () {
+    var background = this.add.image(64, 64, 'background').setOrigin(0).setScale(1);
+    background.depth = -10;
+    background.scaleX = 1.375;
     var text = this.add.text(200, 0, '', { font: "32px Arial", fill: "#19de65" });
     text.text = 'You are in snake';
-    this.icon = this.add.image(32,32,'shields-icon');
+    this.icon = this.add.image(32,32,'snake-icon');
     this.icon.scaleX = 1 / 8;
     this.icon.scaleY = 1 / 8;
     this.backKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
@@ -56,10 +57,11 @@ var SceneSnake = new Phaser.Class({
       initialize:
 
       function Food (scene, x, y) {
-        Phaser.GameObjects.Image.call(this, scene)
-        this.setTexture('food');
+        Phaser.GameObjects.Image.call(this, scene);
+        this.setTexture('foodGreen');
         this.setPosition(x * 16, y * 16);
         this.setOrigin(0);
+        this.setScale(1/16);
         this.total = 0;
         scene.children.add(this);
       },
@@ -129,22 +131,22 @@ var SceneSnake = new Phaser.Class({
         switch (this.heading) {
           case DIRECTION.LEFT:
           this.headPosition.x = Phaser.Math
-            .Wrap(this.headPosition.x - 1, 0, 48);
+            .Wrap(this.headPosition.x - 1, 4, 43);
           break;
 
           case DIRECTION.RIGHT:
           this.headPosition.x = Phaser.Math
-            .Wrap(this.headPosition.x + 1, 0, 48);
+            .Wrap(this.headPosition.x + 1, 4, 43);
           break;
 
           case DIRECTION.UP:
           this.headPosition.y = Phaser.Math
-            .Wrap(this.headPosition.y - 1, 0, 35);
+            .Wrap(this.headPosition.y - 1, 4, 35);
           break;
 
           case DIRECTION.DOWN:
           this.headPosition.y = Phaser.Math
-            .Wrap(this.headPosition.y + 1, 0, 35);
+            .Wrap(this.headPosition.y + 1, 4, 35);
           break;
         }
 
@@ -164,12 +166,11 @@ var SceneSnake = new Phaser.Class({
           sendMessage('snakeEats',{});
           console.log('dead');
           this.alive = false;
+
           return false;
-        }
-        else {
+        } else {
           //  Update the timer ready for the next movement
           this.moveTime = time + this.speed;
-
           return true;
         }
       },
@@ -190,23 +191,20 @@ var SceneSnake = new Phaser.Class({
           if (this.speed > 20 && food.total % 5 === 0) {
             this.speed -= 5;
           }
-
           return true;
-        }
-        else {
+        } else {
           return false;
         }
       },
 
       updateGrid: function (grid) {
+        console.log(grid);
         //  Remove all body pieces from valid positions list
         this.body.children.each(function (segment) {
-
           var bx = segment.x / 16;
           var by = segment.y / 16;
-
+          console.log(grid[by][bx]);
           grid[by][bx] = false;
-
         });
 
         return grid;
@@ -214,9 +212,9 @@ var SceneSnake = new Phaser.Class({
 
     });
 
-    this.food = new Food(this, 3, 4);
+    this.food = new Food(this, 8, 12);
 
-    this.snake = new Snake(this, 32, 32);
+    this.snake = new Snake(this, 32, 30);
 
     //  Create our keyboard controls
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -269,9 +267,10 @@ var SceneSnake = new Phaser.Class({
 
     //  A Grid we'll use to reposition the food each time it's eaten
     var testGrid = [];
-    for (var y = 0; y < 35; y++) {
+
+    for (let y = 0; y < 30; y++) {
       testGrid[y] = [];
-      for (var x = 0; x < 48; x++) {
+      for (let x = 0; x < 30; x++) {
         testGrid[y][x] = true;
       }
     }
@@ -281,14 +280,16 @@ var SceneSnake = new Phaser.Class({
     //  Purge out false positions
     var validLocations = [];
 
-    for (var y = 0; y < 35; y++) {
-      for (var x = 0; x < 48; x++) {
+    for (let y = 0; y < 34; y++) {
+      for (let x = 0; x < 43; x++) {
         if (testGrid[y][x] === true) {
           //  Is this position valid for food? If so, add it here ...
           validLocations.push({ x: x, y: y });
         }
       }
     }
+
+    console.log(validLocations);
 
     if (validLocations.length > 0) {
       //  Use the RNG to pick a random food position
@@ -303,5 +304,7 @@ var SceneSnake = new Phaser.Class({
       return false;
     }
   },
+
+
 
 });
