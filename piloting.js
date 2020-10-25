@@ -148,7 +148,7 @@ var ScenePiloting = new Phaser.Class({
         this.input.keyboard.on('keyup', function (event) {
             switch(event.key){
                 case 't': sendMessage('test','This is the captain speaking.'); break;
-                case 'm': sendMessage('missle');
+                case 'm': sendMessage('missile');
 
             }
         });
@@ -489,7 +489,7 @@ var ScenePiloting = new Phaser.Class({
 
     receiveMessage: function (data) {
         switch(data.type){
-            case 'missle':
+            case 'missile':
                 this.effects.missleActive = true;
                 this.effects.missleTimer = this.params.MISSLE_TIME;
                 this.missle.setPosition(this.ship.x,this.ship.y);

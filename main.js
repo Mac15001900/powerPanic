@@ -1,9 +1,9 @@
-const DEBUG_IGNORE_TAKEN_STATIONS = true;
+const DEBUG_IGNORE_TAKEN_STATIONS = false;
 const DEBUG_SHOW_HITBOXES = false;
 const DEBUG_USE_DEV_SERVER = false;
 const DEBUG_USE_RANDOM_SERVER = false;
-const DEBUG_RANDOMISE_USERNAME = true;
-const DEBUG_IGNORE_GAME_STATE = true;
+const DEBUG_RANDOMISE_USERNAME = false;
+const DEBUG_IGNORE_GAME_STATE = false;
 
 var SceneStart = new Phaser.Class({
 
@@ -105,7 +105,7 @@ function switchToScene(currentScene, targetScene) {
     var currentKey = currentScene.scene.key;
     if(takenStations.includes(targetScene) && targetScene !== 'SceneStart' && !DEBUG_IGNORE_TAKEN_STATIONS){
         console.error('Tried to switch to a taken station '+targetScene);
-        alert('That station is taken');
+        //alert('That station is taken');
         return false;
     }
 
