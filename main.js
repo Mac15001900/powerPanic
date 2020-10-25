@@ -151,10 +151,11 @@ var game = new Phaser.Game(config);
 
 //Networking stuff
 
-const ROOM_NAME = 'observable-main-';
+const ROOM_NAME_BASE = 'observable-main-';
 const CHANNEL_ID = 'zb4mnOSMgmoONGoM';
 var members;
 var takenStations = [];
+var roomName = getRoom();
 
 function getUsername() {
     if(DEBUG_RANDOMISE_USERNAME) return getRandomName();
@@ -176,8 +177,8 @@ function getRandomName() {
 }
 
 function getRoom() {
-    if(DEBUG_USE_DEV_SERVER) return 'dev';
-    if(DEBUG_USE_RANDOM_SERVER) return 'random-'+Math.random();
+    if(DEBUG_USE_DEV_SERVER) return ROOM_NAME_BASE+'dev';
+    if(DEBUG_USE_RANDOM_SERVER) return ROOM_NAME_BASE+'random-'+Math.random();
 
     var room;
     room = prompt("Enter the room name to join or create a room.","");
@@ -185,7 +186,7 @@ function getRoom() {
     while(!room){
         var room = prompt("Enter the room name (it can'this be empty) to join or create a room.","");
     }
-    return(room);
+    return(ROOM_NAME_BASE+room);
 }
 
 const drone = new ScaleDrone(CHANNEL_ID, {
@@ -196,7 +197,7 @@ const drone = new ScaleDrone(CHANNEL_ID, {
 
 function sendMessage(type, content) {
   drone.publish({
-    room: ROOM_NAME,
+    room: roomName,
     message: {
       type: type,
       content: content
@@ -219,7 +220,7 @@ drone.on('open', error => {
     }
     console.log('Successfully connected to Scaledrone');
      
-    const room = drone.subscribe(ROOM_NAME);
+    const room = drone.subscribe(roomName);
     room.on('open', error => {
        if (error) {
            return console.error(error);
