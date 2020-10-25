@@ -9,7 +9,8 @@ const DIRECTION = {
 };
 
 const DIMS = {
-
+  STEPS_X: 43,
+  STEPS_Y: 35
 }
 
 
@@ -41,7 +42,7 @@ var SceneSnake = new Phaser.Class({
   create: function () {
     var background = this.add.image(64, 64, 'background').setOrigin(0).setScale(1);
     background.depth = -10;
-    background.scaleX()
+    background.scaleX = 1.375;
     var text = this.add.text(200, 0, '', { font: "32px Arial", fill: "#19de65" });
     text.text = 'You are in snake';
     this.icon = this.add.image(32,32,'snake-icon');
@@ -130,12 +131,12 @@ var SceneSnake = new Phaser.Class({
         switch (this.heading) {
           case DIRECTION.LEFT:
           this.headPosition.x = Phaser.Math
-            .Wrap(this.headPosition.x - 1, 4, 48);
+            .Wrap(this.headPosition.x - 1, 4, 43);
           break;
 
           case DIRECTION.RIGHT:
           this.headPosition.x = Phaser.Math
-            .Wrap(this.headPosition.x + 1, 4, 48);
+            .Wrap(this.headPosition.x + 1, 4, 43);
           break;
 
           case DIRECTION.UP:
@@ -267,9 +268,9 @@ var SceneSnake = new Phaser.Class({
     //  A Grid we'll use to reposition the food each time it's eaten
     var testGrid = [];
 
-    for (let y = 0; y < 35; y++) {
+    for (let y = 0; y < 30; y++) {
       testGrid[y] = [];
-      for (let x = 0; x < 44; x++) {
+      for (let x = 0; x < 30; x++) {
         testGrid[y][x] = true;
       }
     }
@@ -279,8 +280,8 @@ var SceneSnake = new Phaser.Class({
     //  Purge out false positions
     var validLocations = [];
 
-    for (let y = 0; y < 35; y++) {
-      for (let x = 0; x < 44; x++) {
+    for (let y = 0; y < 34; y++) {
+      for (let x = 0; x < 43; x++) {
         if (testGrid[y][x] === true) {
           //  Is this position valid for food? If so, add it here ...
           validLocations.push({ x: x, y: y });
