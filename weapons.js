@@ -32,7 +32,11 @@ var SceneWeapons = new Phaser.Class({
 
         this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
+        var theGroup;
+        this.theGroup = this.add.group();
+
         var currentPiece;
+
         this.bottom = {
             name: 'missile-bottom'
         };
@@ -59,8 +63,7 @@ var SceneWeapons = new Phaser.Class({
         }
 
         if(Phaser.Input.Keyboard.JustDown(this.spaceKey))
-            this.dropPiece();
-
+            this.dropPiece();      
     },
 
     initializeMissileGame: function(piece) {
@@ -96,6 +99,11 @@ var SceneWeapons = new Phaser.Class({
         piece.setVelocity(v, 0);
         piece.setBounce(1, 0);
         piece.setCollideWorldBounds(true);
+
+        this.theGroup.add(piece);
+        
+        this.physics.add.collider(this.theGroup, this.currentPiece);
+        this.physics.add.collider(this.theGroup, piece);
         this.physics.add.collider(piece, this.currentPiece);
 
         this.currentPiece = piece;
