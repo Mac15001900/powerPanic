@@ -162,7 +162,7 @@ this.passwordPos.sort(function(a,b){return a-b});
     update: function (timestep, dt) {
         if(this.backKey.isDown){
             console.log('Switching back to menu');
-            this.scene.start('SceneStart');
+            switchToScene(this,'SceneStart');
         }
         if(gameStatus !== GS.GAME_STARTED && !DEBUG_IGNORE_GAME_STATE) return;
 
