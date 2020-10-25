@@ -121,7 +121,7 @@ function switchToScene(currentScene, targetScene) {
 }
 
 function endGame(message) {
-    if(gameStatus === GS.GAME_OVER) return;
+    if(gameStatus !== GS.GAME_STARTED) return;
     console.log('Ending the game');
     sendMessage('endGame',message);
     gameStatus = GS.GAME_OVER;
