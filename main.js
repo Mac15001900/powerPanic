@@ -101,6 +101,7 @@ function switchToScene(currentScene, targetScene) {
     var currentKey = currentScene.scene.key;
     if(takenStations.includes(targetScene) && targetScene !== 'SceneStart' && !DEBUG_IGNORE_TAKEN_STATIONS){
         console.error('Tried to switch to a taken station '+targetScene);
+        alert('That station is taken');
         return false;
     }
 
@@ -116,7 +117,7 @@ function switchToScene(currentScene, targetScene) {
 }
 
 function setInstructions(text) {
-    // body...
+    document.querySelector('#instructions').innerHTML = text;
 }
 
 const CANVAS_HEIGHT = 800;
