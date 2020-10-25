@@ -55,7 +55,7 @@ var ScenePiloting = new Phaser.Class({
         ASTEROID_SPAWN_COOLDOWN: 300,
         FRIENDLY_SPAWN_COOLDOWN: 1000,
         MISSLE_TIME: 500,
-        MISSLE_SPEED: 250,
+        MISSLE_SPEED: 500,
     },
 
     effects: {
@@ -131,16 +131,22 @@ var ScenePiloting = new Phaser.Class({
         var explosionParticles = this.add.particles('explosion-particle');
 
         this.explosionEmitter = explosionParticles.createEmitter({
-            on: false,
             speed: 500,
             scale: { start: 1, end: 0 },
             blendMode: 'ADD',
         });
+        this.explosionEmitter.setFrequency(-1,500);
+        this.explosionEmitter.setLifespan(500);
 
-        this.explosionSprite = this.physics.add.sprite(CANVAS_HEIGHT/2,CANVAS_WIDTH/2,'ship');
+        this.explosionSprite = this.physics.add.sprite(CANVAS_HEIGHT/2,CANVAS_WIDTH/2,'explosion-particle');
+        this.explosionSprite.depth = 5;
+        this.explosionSprite.setScale(3);
+        this.explosionSprite.setVisible(false);
 
         this.missle = this.physics.add.sprite(0,0,'missle');
         this.missle.setVisible(false);
+
+
 
         this.asteroids = this.physics.add.group();
         this.bullets = this.physics.add.group();
@@ -156,11 +162,6 @@ var ScenePiloting = new Phaser.Class({
     },
 
     hitAsteroid: function(bullet, asteroid){
-        /*bullet.destroy();
-        asteroid.destroy();
-        this.asteroids = this.asteroids.filter(a=>a.active);
-        this.bullets = this.bullets.filter(b=>b.active);
-        this.physics.add.overlap(this.bullets, this.asteroids, this.hitAsteroid, null, this);*/
         this.asteroids.remove(asteroid,true, true);
         this.bullets.remove(bullet,true, true);
     },
@@ -168,8 +169,7 @@ var ScenePiloting = new Phaser.Class({
     hitFriendly: function(bullet, target){
         console.log('Friendy ship shot');
         this.bullets.remove(bullet, true, true);
-        this.friendly.remove(target, true, true);
-        //this.physics.add.overlap(this.bullets, this.friendly, this.hitFriendly, null, this);          
+        this.friendly.remove(target, true, true);        
     },
 
     pickPositionsNearEdge: function(distance){
@@ -323,16 +323,21 @@ var ScenePiloting = new Phaser.Class({
         if(this.asteroidSpawnCooldown) this.effects.asteroidAmount = 0;
         if(this.friendlySpawnCooldown) this.effects.friendlyAmount = 0;
 
-        if(this.effects.missleActive){
-            this.effects.missleTimer -= dt;
+        this.effects.missleTimer -= dt;
+        if(this.effects.missleActive){            
             if(this.effects.missleTimer < 0){
                 this.effects.missleActive = false;
                 this.missle.setVisible(false);
                 //Explosion!
+                this.explosionSprite.setPosition(this.missle.x,this.missle.y);
+                this.explosionSprite.setVisible(true);
+                this.explosionSprite.alpha = .8;
 
-
-
+                this.explosionEmitter.setPosition(this.missle.x,this.missle.y);
+                this.explosionEmitter.explode();
             }
+        } else {
+            this.explosionSprite.alpha = 1 + this.effects.missleTimer/1000;
         }
 
     },
