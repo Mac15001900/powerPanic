@@ -1,5 +1,8 @@
 const DEBUG_IGNORE_TAKEN_STATIONS = true;
 const DEBUG_SHOW_HITBOXES = false;
+const DEBUG_USE_DEV_SERVER = true;
+const DEBUG_USE_RANDOM_SERVER = false;
+const DEBUG_RANDOMISE_USERNAME = true;
 
 var SceneStart = new Phaser.Class({
 
@@ -148,12 +151,13 @@ var game = new Phaser.Game(config);
 
 //Networking stuff
 
-const ROOM_NAME = 'observable-main';
+const ROOM_NAME = 'observable-main-';
 const CHANNEL_ID = 'zb4mnOSMgmoONGoM';
 var members;
 var takenStations = [];
 
 function getUsername() {
+    if(DEBUG_RANDOMISE_USERNAME) return getRandomName();
     var name;
     name = prompt("Enter your username","");
       
@@ -171,10 +175,22 @@ function getRandomName() {
   return (name);
 }
 
+function getRoom() {
+    if(DEBUG_USE_DEV_SERVER) return 'dev';
+    if(DEBUG_USE_RANDOM_SERVER) return 'random-'+Math.random();
+
+    var room;
+    room = prompt("Enter the room name to join or create a room.","");
+      
+    while(!room){
+        var room = prompt("Enter the room name (it can'this be empty) to join or create a room.","");
+    }
+    return(room);
+}
+
 const drone = new ScaleDrone(CHANNEL_ID, {
   data: { // Will be sent out as clientData via events
-    //name: getUsername(),
-    name: getRandomName(),
+    name: getUsername(),
   },
 });
 

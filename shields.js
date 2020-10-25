@@ -18,7 +18,7 @@ var SceneShields = new Phaser.Class({
 
     create: function () {
         var text = this.add.text(200, 200, '', { font: "32px Arial", fill: "#19de65" });
-        text.text = 'You are in shields';
+        text.text = 'You are in shields\nThey seem fine';
         this.icon = this.add.image(32,32,'shields-icon');
         this.icon.scaleX = 1/8;
         this.icon.scaleY = 1/8;
