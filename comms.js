@@ -19,7 +19,7 @@ var SceneComms = new Phaser.Class({
 
     create: function () {
 
-        this.womp = this.add.text(50,100, 'Comms needs your help! \nTranslate the messages correctly to clear the civilian ships. \n Hover over each character and find the green characters to spell the translation', { font: "20px Arial", fill: "#19de65" });
+        this.womp = this.add.text(50,100, 'Comms needs your help! \nTranslate the messages correctly to clear the civilian ships. \n Hover over each character and find the green characters to spell the message', { font: "20px Arial", fill: "#19de65" });
         this.pomp = this.add.text(50,200, '.', { font: "20px Arial", fill: "#19de65" });
 
         var powerIcon = this.add.image(96,48,'power-icon');

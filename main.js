@@ -38,7 +38,7 @@ var SceneStart = new Phaser.Class({
 
     create: function() {
         text = this.add.text(32, 32, '', { font: "16px Arial", fill: "#19de65" });
-        text.text = 'This is a start menu thingy.\n Use W,N,P,C,S and A to switch to stations.'; //TODO Add lore and good instructions here
+        text.text = 'Select a station using the following keys:\n W for weapons\nN for navigation\nC for communication\nP for pilot (required).'; //TODO Add lore and good instructions here
 
         this.add.image(400, 300, 'sky');
 
@@ -88,7 +88,7 @@ var SceneStart = new Phaser.Class({
     update: function(timestep, dt) {
         //Note: those have to be here, otherwise they don't see this.scene properly
         if(this.keyW.isDown) switchToScene(this,'SceneWeapons');
-        if(this.keyN.isDown) switchToScene(this,'SceneNavigation');
+        if(this.keyN.isDown) switchToScene(this,'SceneComms');
         if(this.keyP.isDown) switchToScene(this,'ScenePiloting');
         if(this.keyS.isDown) switchToScene(this,'SceneShields');
         if(this.keyA.isDown) switchToScene(this,'SceneSnake');
