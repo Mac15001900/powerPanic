@@ -285,7 +285,9 @@ drone.on('open', error => {
                     gameStatus = GS.GAME_STARTED;
                     break;
                 case 'endGame': //Sent when the game ends. Scenes should listen and react to this
-                    gameStatus = GS.GAME_OVER;
+                    //gameStatus = GS.GAME_OVER;
+                    switchToScene(getActiveScene(),'SceneStart');
+                    gameStatus = GS.CONNECTED;                    
                     alert('Game over\n'+data.content);
                     break;
                 default: console.log('Unknown message type received: '+data.type)
