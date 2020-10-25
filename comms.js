@@ -18,29 +18,20 @@ var SceneComms = new Phaser.Class({
 
     create: function () {
 
+        this.womp = this.add.text(50,100, 'Comms needs your help! \nTranslate the messages correctly to clear the civilian ships. \n Hover over each character and find the green characters to spell the translation', { font: "20px Arial", fill: "#19de65" });
+        this.pomp = this.add.text(50,200, '.', { font: "20px Arial", fill: "#19de65" });
+
+
         this.passwordList = [
-            "SPACESHIP",
-            "ASTRONAUT",
-            "CELESTIAL",
-            "SUPERNOVA",
-            "GALAXY",
-            "JUPITER",
-            "UNIVERSE",
-            "VACUUM",
-            "ECLIPSE",
-            "TELESCOPE",
-            "SATELLITE",
-            "NEBULAE",
-            "ASTEROID",
-            "METEORITE",
-            "MERCURY",
-            "GRAVITY",
-            "VOYAGER",
-            "SPUTNIK",
-            "DISCOVERY",
-            "ENTERPRISE",
-            "ATLANTIS",
-            "HOUSTON"
+            "CLEAR",
+            "EVACUATE",
+            "GOAWAY",
+            "RUNAWAY",
+            "LEAVE",
+            "CLEARTHEAREA",
+            "FLEE",
+            "SCARPER",
+            "SCRAM"
             ]
         this.password = this.passwordList[Math.floor(Math.random()*this.passwordList.length)];
         this.passwordPos = [];
@@ -87,22 +78,22 @@ this.passwordPos.sort(function(a,b){return a-b});
                 }
             });
         }
-        this.icon = this.add.image(32,32,'key-icon');
+        this.icon = this.add.image(32,32,'icon-comms');
         this.icon.scaleX = 1/8;
         this.icon.scaleY = 1/8;
         this.backKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
 
 
-        const a = 88;
+        const a = 89;
 
         this.inputsquare = this.add.image(30+45*12,270, 'square');
         this.inputsquare.scaleX = 3;
-        this.inputsquare.scaleY = 3/4;
+        this.inputsquare.scaleY = 0.7;
         this.inputt = this.add.text(30+45*12,270, '', { font: "35px Arial", fill: "#19de65" }).setOrigin(0.5);
 
         this.clearsquare = this.add.image(30+45*12,270+a, 'square');
         this.clearsquare.scaleX = 3;
-        this.clearsquare.scaleY = 3/4;
+        this.clearsquare.scaleY = 0.7;
         this.clear = this.add.text(30+45*12,270+a, '',{font: "20px Arial", fill: "#19de65"}).setOrigin(0.5);
         this.clear.text = 'CLEAR';
         this.clearsquare.setInteractive();
@@ -118,7 +109,7 @@ this.passwordPos.sort(function(a,b){return a-b});
 
         this.backspacesquare = this.add.image(30+45*12,270+a*2, 'square');
         this.backspacesquare.scaleX = 3;
-        this.backspacesquare.scaleY = 3/4;
+        this.backspacesquare.scaleY = 0.72;
         this.backspace = this.add.text(30+45*12,270+a*2, '', {font: "20px Arial", fill: "#19de65"}).setOrigin(0.5);
         this.backspace.text = 'BACKSPACE';
         this.backspacesquare.setInteractive();
@@ -134,7 +125,7 @@ this.passwordPos.sort(function(a,b){return a-b});
 
         this.submitsquare = this.add.image(30+45*12,270+a*3, 'square');
         this.submitsquare.scaleX = 3;
-        this.submitsquare.scaleY = 3/4;
+        this.submitsquare.scaleY = 0.7;
         this.submit = this.add.text(30+45*12,270+a*3, '', {font: "20px Arial", fill:"#19de65"}).setOrigin(0.5);
         this.submit.text = 'SUBMIT';
         this.submitsquare.setInteractive();
@@ -146,12 +137,18 @@ this.passwordPos.sort(function(a,b){return a-b});
         })
         this.submitsquare.on('pointerup',()=>{
             if(this.inputt.text==this.password){
-                console.log('correct');
+                this.inputt.text='';
+                this.pomp.text = 'CORRECT!';
+                //RIGHT ANSWER
+
             }
             else{
-                console.log('wrong');
                 this.inputt.text='';
-            }
+                this.pomp.text='INCORRECT';
+                //WRONG ANSWER
+
+
+              }
         })
 
 
