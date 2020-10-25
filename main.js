@@ -1,7 +1,7 @@
 const DEBUG_IGNORE_TAKEN_STATIONS = true;
 const DEBUG_SHOW_HITBOXES = false;
-const DEBUG_USE_DEV_SERVER = true;
-const DEBUG_USE_RANDOM_SERVER = false;
+const DEBUG_USE_DEV_SERVER = false;
+const DEBUG_USE_RANDOM_SERVER = true;
 const DEBUG_RANDOMISE_USERNAME = true;
 const DEBUG_IGNORE_GAME_STATE = true;
 
@@ -140,6 +140,7 @@ const GS = {
     GAME_OVER: 3
 };
 var gameStatus = GS.NOT_CONNECTED;
+var power=0;
 
 
 var config = {

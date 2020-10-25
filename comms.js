@@ -14,12 +14,17 @@ var SceneComms = new Phaser.Class({
 	preload: function() {
 		this.load.image('icon-comms', 'assets/satellite-communication.png');
 		this.load.image('square', 'assets/square.png');
+        this.load.image('power-icon', 'assets/powerupBlue_bolt.png');
 	},
 
     create: function () {
 
         this.womp = this.add.text(50,100, 'Comms needs your help! \nTranslate the messages correctly to clear the civilian ships. \n Hover over each character and find the green characters to spell the translation', { font: "20px Arial", fill: "#19de65" });
         this.pomp = this.add.text(50,200, '.', { font: "20px Arial", fill: "#19de65" });
+
+        var powerIcon = this.add.image(96,48,'power-icon');
+        powerIcon.depth = 2;
+        this.powerBar = this.add.graphics();
 
 
         this.passwordList = [
@@ -136,6 +141,7 @@ this.passwordPos.sort(function(a,b){return a-b});
             this.submitsquare.clearTint();
         })
         this.submitsquare.on('pointerup',()=>{
+            power -= 13;
             if(this.inputt.text==this.password){
                 this.inputt.text='';
                 this.pomp.text = 'CORRECT!';
@@ -158,6 +164,13 @@ this.passwordPos.sort(function(a,b){return a-b});
             console.log('Switching back to menu');
             this.scene.start('SceneStart');
         }
+        if(gameStatus !== GS.GAME_STARTED && !DEBUG_IGNORE_GAME_STATE) return;
+
+        power += 4*dt/1000;
+        this.powerBar.clear();
+        this.powerBar.fillStyle(0x5555ff, 1);
+        this.powerBar.fillRect(96, 32, power*6.5, 32);
+        if(power > 100) endGame('Your communication system exploded');
     },
 
     receiveMessage: function (data) {
