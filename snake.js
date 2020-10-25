@@ -38,6 +38,7 @@ var SceneSnake = new Phaser.Class({
     this.load.image('foodBlue', 'assets/blue-particle.png');
     this.load.image('foodGreen', 'assets/green-orb.png');
     this.load.image('body', 'assets/body2.png');
+    this.load.image('power-icon', 'assets/powerupBlue_bolt.png')
     /*
     this.load.image('power-icon', 'assets/powerupBlue_bolt.png');
     this.load.image('confusion', 'assets/confusion.png');
@@ -45,6 +46,10 @@ var SceneSnake = new Phaser.Class({
   },
 
   create: function () {
+    this.speedKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    var powerIcon = this.add.image(32,CANVAS_HEIGHT-16,'power-icon');
+    powerIcon.depth = 5;
+    this.powerBar = this.add.graphics();
     // 512 x 512
     var background = this.add.image(64, 64, 'background').setOrigin(0);
     background.setSize(672, 472);
@@ -235,6 +240,7 @@ var SceneSnake = new Phaser.Class({
       this.scene.start('SceneStart');
       switchToScene(this,'SceneStart');
     }
+    if(gameStatus !== GS.GAME_STARTED && !DEBUG_IGNORE_GAME_STATE) return;
 
     if (!this.snake.alive) {
       this.scene.restart();
@@ -249,18 +255,24 @@ var SceneSnake = new Phaser.Class({
     } else if (this.cursors.down.isDown) {
       this.snake.faceDown();
     }
-    this.input.keyboard.on('keyup', function (event) {
-      if (event.keyCode == 32) { this.speed = 100; }
-    });
-    this.input.keyboard.on('keydown', function (event) {
-      if (event.keyCode == 32) { this.speed -= 5; }
-    });
+    if(this.speedKey.isDown) {
+      power -= 20*dt/1000;
+      this.snake.speed = 30;
+      if(!this.cameras.main.shakeEffect.isRunning) this.cameras.main.shakeEffect.start(100,.005,.005);
+    }
+    else this.snake.speed = 100;
     if (this.snake.update(timestep)) {
       //  If the snake updated, we need to check for collision against food
       if (this.snake.collideWithFood(this.food)) {
         this.repositionFood();
       }
     }
+
+    power += 5*dt/1000;
+    this.powerBar.clear();
+    this.powerBar.fillStyle(0x5555ff, 1);
+    this.powerBar.fillRect(16, CANVAS_HEIGHT-power*5 - 16, 32, power*5);
+    if(power > 100) endGame('Navigation has exploded');
   },
 
   receiveMessage: function (data) {
@@ -286,8 +298,8 @@ var SceneSnake = new Phaser.Class({
     //  Purge out false positions
     var validLocations = [];
 
-    for (let y = 0; y < 33; y++) {
-      for (let x = 0; x < 46; x++) {
+    for (let y = 4; y < 30; y++) {
+      for (let x = 4; x < 40; x++) {
         if (testGrid[y][x] === true) {
           //  Is this position valid for food? If so, add it here ...
           validLocations.push({ x: x, y: y });
