@@ -166,7 +166,7 @@ this.passwordPos.sort(function(a,b){return a-b});
         }
         if(gameStatus !== GS.GAME_STARTED && !DEBUG_IGNORE_GAME_STATE) return;
 
-        power += 4*dt/1000;
+        power += 2*dt/1000;
         this.powerBar.clear();
         this.powerBar.fillStyle(0x5555ff, 1);
         this.powerBar.fillRect(96, 32, power*6.5, 32);
