@@ -20,7 +20,7 @@ var SceneComms = new Phaser.Class({
     create: function () {
 
         this.womp = this.add.text(50,100, 'Comms needs your help! \nTranslate the messages correctly to clear the civilian ships. \n Hover over each character and find the green characters to spell the message', { font: "20px Arial", fill: "#19de65" });
-        this.pomp = this.add.text(50,200, '.', { font: "20px Arial", fill: "#19de65" });
+        this.pomp = this.add.text(50,200, '', { font: "20px Arial", fill: "#19de65" });
 
         var powerIcon = this.add.image(96,48,'power-icon');
         powerIcon.depth = 2;
@@ -132,7 +132,7 @@ this.passwordPos.sort(function(a,b){return a-b});
         this.submitsquare.scaleX = 3;
         this.submitsquare.scaleY = 0.7;
         this.submit = this.add.text(30+45*12,270+a*3, '', {font: "20px Arial", fill:"#19de65"}).setOrigin(0.5);
-        this.submit.text = 'SUBMIT';
+        this.submit.text = 'SEND MESSAGE';
         this.submitsquare.setInteractive();
         this.submitsquare.on('pointerover',()=>{
             this.submitsquare.setTint(0xffff00)
@@ -141,18 +141,18 @@ this.passwordPos.sort(function(a,b){return a-b});
             this.submitsquare.clearTint();
         })
         this.submitsquare.on('pointerup',()=>{
-            power -= 13;
+            power -= 26;
             if(this.inputt.text==this.password){
                 this.inputt.text='';
                 this.pomp.text = 'CORRECT!';
                 sendMessage('commsResult',true);
-                this.time.delayedCall(3000, function(){this.scene.restart()}, [], this);
+                this.time.delayedCall(1500, function(){this.scene.restart()}, [], this);
             }
             else{
                 this.inputt.text='';
                 this.pomp.text='INCORRECT';
                 sendMessage('commsResult',false);
-                this.time.delayedCall(3000, function(){this.scene.restart()}, [], this);
+                this.time.delayedCall(1500, function(){this.scene.restart()}, [], this);
               }
         })
 

@@ -35,7 +35,7 @@ var ScenePiloting = new Phaser.Class({
         this.load.image('background', 'assets/black-stars.png');
         this.load.image('laser', 'assets/laserBlue01.png');
         this.load.image('confusion', 'assets/confusion.png');
-        this.load.image('missle', 'assets/spaceMissiles_003.png');
+        this.load.image('missile', 'assets/spaceMissiles_003.png');
 
         this.load.image('health-icon', 'assets/powerupRed_shield.png');
         this.load.image('frienship-icon', 'assets/ship-green-mini.png');
@@ -55,21 +55,21 @@ var ScenePiloting = new Phaser.Class({
         ROTATION_SPEED: 0.005,
         EXHAUST_SPREAD: 20,
         MAX_ASTEROIDS: 10,
+        ASTEROID_DAMAGE: 10,
+        ASTEROID_SPAWN_COOLDOWN: 700,
         BASIC_COOLDOW: 250,
         BULLET_SPEED: 1000,
         BULLET_RECOIL: 10,
         MAX_FRIENDLY: 15,
         EXTRA_FRIENDLY: 10,
         FRIENDLY_SPEED: 50,
-        FRIENDLY_SIDE_SPEED: 25,
-        ASTEROID_SPAWN_COOLDOWN: 700,
+        FRIENDLY_SIDE_SPEED: 25,        
         FRIENDLY_SPAWN_COOLDOWN: 1000,
-        MISSLE_TIME: 500,
-        MISSLE_SPEED: 500,
-        MISSLE_RADIUS: 200,
+        MISSILE_TIME: 500,
+        MISSILE_SPEED: 500,
+        MISSILE_RADIUS: 200,
         FRIENSHIP_LOSS_ON_KILL: 10,
-        FRIENSHIP_LOSS_ON_MISS: 1,
-        ASTEROID_DAMAGE: 10,
+        FRIENSHIP_LOSS_ON_MISS: 1,        
         POWER_GAIN: 3,
         POWER_USAGE: 6,
         SHIP_EFFECT_TIME: 7500,
@@ -82,8 +82,8 @@ var ScenePiloting = new Phaser.Class({
         asteroidAmount: 0,
         asteroidTimeLeft: 0,
         confisionLeft: 0,
-        missleActive: false,
-        missleTimer: 0,
+        missileActive: false,
+        missileTimer: 0,
     },
 
     create: function () {
@@ -186,10 +186,10 @@ var ScenePiloting = new Phaser.Class({
         this.explosionSprite.setScale(3);
         this.explosionSprite.setVisible(false);
 
-        this.missle = this.physics.add.sprite(0,0,'missle');
-        this.missle.setVisible(false);
-        this.missle.setBounce(1);
-        this.missle.setCollideWorldBounds(true);
+        this.missile = this.physics.add.sprite(0,0,'missile');
+        this.missile.setVisible(false);
+        this.missile.setBounce(1);
+        this.missile.setCollideWorldBounds(true);
 
 
 
@@ -205,7 +205,7 @@ var ScenePiloting = new Phaser.Class({
         this.asteroidSpawnCooldown = this.params.ASTEROID_SPAWN_COOLDOWN;
         this.friendlySpawnCooldown = this.params.FRIENDLY_SPAWN_COOLDOWN;
 
-        this.heathBar = this.add.graphics();
+        this.healthBar = this.add.graphics();
         this.frienshipBar = this.add.graphics();
         this.powerBar = this.add.graphics();
 
@@ -213,7 +213,7 @@ var ScenePiloting = new Phaser.Class({
         this.add.image(32+48,CANVAS_HEIGHT-16,'frienship-icon');
         this.add.image(32+48*2,CANVAS_HEIGHT-16,'power-icon');
 
-        this.heath = 100;
+        this.health = 100;
         this.frienship = 100;
         this.power = 0;
     },
@@ -240,7 +240,7 @@ var ScenePiloting = new Phaser.Class({
 
     hitShip: function(ship, asteroid){
         this.killAsteroid(asteroid);
-        this.heath -= this.params.ASTEROID_DAMAGE;
+        this.health -= this.params.ASTEROID_DAMAGE;
     },
 
     pickPositionsNearEdge: function(distance){
@@ -273,6 +273,11 @@ var ScenePiloting = new Phaser.Class({
 
     distanceBetween: function(p1,p2){
         return Math.sqrt(Math.pow(p1.x-p2.x,2) + Math.pow(p1.y-p2.y,2));
+    },
+
+    distanceFromEdge: function(pos){
+        var candidates = [pos.x, pos.y, CANVAS_WIDTH-pos.x, CANVAS_HEIGHT-pos.y];
+        return candidates.map(Math.abs).reduce((a,b)=>Math.min(a,b));
     },
 
     update: function (timestep, dt) {
@@ -326,9 +331,10 @@ var ScenePiloting = new Phaser.Class({
             else if(this.effects.shipAmount < 0) chance = 0.25;
             
             if(Math.random() > 1-chance){                
-                var pos = this.pickPositionsNearEdge(10);
-                this.asteroids.add(this.physics.add.sprite(pos.x,pos.y,'meteor-big-1'));
+                var pos = this.pickPositionsNearEdge(-50);
+                this.asteroids.add(this.physics.add.sprite(pos.x,pos.y,'meteor-big-'+Math.ceil(Math.random()*4)));
                 var newAsteroid = this.asteroids.children.entries[this.asteroids.children.entries.length-1];
+                newAsteroid.setFlip(Math.random()>0.5, Math.random()>0.5);
                 newAsteroid.setVelocity(Math.random()*100, Math.random()*100);
                 newAsteroid.setBounce(1, 1);
                 newAsteroid.setCollideWorldBounds(true);
@@ -417,17 +423,17 @@ var ScenePiloting = new Phaser.Class({
         if(this.asteroidSpawnCooldown) this.effects.asteroidAmount = 0;
         if(this.friendlySpawnCooldown) this.effects.shipAmount = 0;
 
-        this.effects.missleTimer -= dt;
-        if(this.effects.missleActive){            
-            if(this.effects.missleTimer < 0){
-                this.effects.missleActive = false;
-                this.missle.setVisible(false);
+        this.effects.missileTimer -= dt;
+        if(this.effects.missileActive){            
+            if(this.effects.missileTimer < 0){
+                this.effects.missileActive = false;
+                this.missile.setVisible(false);
                 //Explosion!
-                this.explosionSprite.setPosition(this.missle.x,this.missle.y);
+                this.explosionSprite.setPosition(this.missile.x,this.missile.y);
                 this.explosionSprite.setVisible(true);
                 this.explosionSprite.alpha = .8;
 
-                this.explosionEmitter.setPosition(this.missle.x,this.missle.y);
+                this.explosionEmitter.setPosition(this.missile.x,this.missile.y);
                 this.explosionEmitter.explode();
 
                 this.cameras.main.shakeEffect.start(600,.015,.015);
@@ -435,7 +441,7 @@ var ScenePiloting = new Phaser.Class({
                 var killList = [];
                 for (var i = 0; i < this.asteroids.getLength(); i++) {
                     var target = this.asteroids.children.entries[i];
-                    if(this.distanceBetween(target,this.missle) < this.params.MISSLE_RADIUS){
+                    if(this.distanceBetween(target,this.missile) < this.params.MISSILE_RADIUS){
                         killList.push(target);
                     }
                 }
@@ -446,7 +452,7 @@ var ScenePiloting = new Phaser.Class({
                 killList = [];
                 for (var i = 0; i < this.friendly.getLength(); i++) {
                     var target = this.friendly.children.entries[i];
-                    if(this.distanceBetween(target,this.missle) < this.params.MISSLE_RADIUS){
+                    if(this.distanceBetween(target,this.missile) < this.params.MISSILE_RADIUS){
                         killList.push(target);
                     }
                 }
@@ -456,18 +462,19 @@ var ScenePiloting = new Phaser.Class({
 
             }
         } else {
-            this.explosionSprite.alpha = 1 + this.effects.missleTimer/1000;
+            this.explosionSprite.alpha = 1 + this.effects.missileTimer/1000;
         }
 
         this.power += this.params.POWER_GAIN*dt/1000;
-        if(this.power > 100) this.endGame('Engines exploded');
-        if(this.heath <= 0) this.endGame('The ship got destroyed');
-        if(this.frienship <= 0) this.endGame('You killed too many civilians.');
+        if(!DEBUG_IMMORTAL){
+            if(this.power > 100) this.endGame('Engines exploded');
+            if(this.health <= 0) this.endGame('The ship got destroyed');
+            if(this.frienship <= 0) this.endGame('You killed too many civilians.');
+        }
 
-
-        this.heathBar.clear();
-        this.heathBar.fillStyle(0xff1111, 1);
-        this.heathBar.fillRect(16, CANVAS_HEIGHT-this.heath*5 - 16, 32, this.heath*5);
+        this.healthBar.clear();
+        this.healthBar.fillStyle(0xff1111, 1);
+        this.healthBar.fillRect(16, CANVAS_HEIGHT-this.health*5 - 16, 32, this.health*5);
 
         this.frienshipBar.clear();
         this.frienshipBar.fillStyle(0x11ff11, 1);
@@ -490,12 +497,12 @@ var ScenePiloting = new Phaser.Class({
     receiveMessage: function (data) {
         switch(data.type){
             case 'missile':
-                this.effects.missleActive = true;
-                this.effects.missleTimer = this.params.MISSLE_TIME;
-                this.missle.setPosition(this.ship.x,this.ship.y);
-                this.missle.rotation = this.ship.rotation;
-                this.missle.setVisible(true);
-                this.missle.setVelocity(Math.sin(this.ship.rotation)*this.params.MISSLE_SPEED, -Math.cos(this.ship.rotation)*this.params.MISSLE_SPEED);
+                this.effects.missileActive = true;
+                this.effects.missileTimer = this.params.MISSILE_TIME;
+                this.missile.setPosition(this.ship.x,this.ship.y);
+                this.missile.rotation = this.ship.rotation;
+                this.missile.setVisible(true);
+                this.missile.setVelocity(Math.sin(this.ship.rotation)*this.params.MISSILE_SPEED, -Math.cos(this.ship.rotation)*this.params.MISSILE_SPEED);
                 break;
             case 'commsResult':
                 this.effects.shipAmount = data.content ? -1 : 1;

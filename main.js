@@ -4,6 +4,7 @@ const DEBUG_USE_DEV_SERVER = false;
 const DEBUG_USE_RANDOM_SERVER = false;
 const DEBUG_RANDOMISE_USERNAME = false;
 const DEBUG_IGNORE_GAME_STATE = false;
+const DEBUG_IMMORTAL = false;
 
 var SceneStart = new Phaser.Class({
 
@@ -88,7 +89,7 @@ var SceneStart = new Phaser.Class({
     update: function(timestep, dt) {
         //Note: those have to be here, otherwise they don't see this.scene properly
         if(this.keyW.isDown) switchToScene(this,'SceneWeapons');
-        if(this.keyN.isDown) switchToScene(this,'SceneComms');
+        if(this.keyN.isDown) switchToScene(this,'SceneSnake');
         if(this.keyP.isDown) switchToScene(this,'ScenePiloting');
         if(this.keyS.isDown) switchToScene(this,'SceneShields');
         if(this.keyA.isDown) switchToScene(this,'SceneSnake');
