@@ -28,17 +28,13 @@ var SceneComms = new Phaser.Class({
 
 
         this.passwordList = [
-            "CLEAR",
-            "EVACUATE",
-            "GOAWAY",
-            "RUNAWAY",
-            "LEAVE",
-            "CLEARTHEAREA",
-            "FLEE",
-            "SCARPER",
-            "SCRAM"
-            ]
+            "CLEAR", "EVACUATE", "GOAWAY", "RUNAWAY", "LEAVE", "CLEARTHEAREA", "FLEE", "SCARPER", "SCRAM", "RUNFOOLS", "RUNYOUFOOLS", "THISISBAD", 
+            "DONTCOMEHERE", "SERIOUSLYRUN", "BIGEXPLOSION", "EXPLOSIONS", "EXPLODE", "BOOMBOOM", "KABOOM", "KABOOOOM", "DANGER", "PANIC", "DOPANIC",
+            "DEATH", "DESTRUCTION", "OVERLOAD", "SUPERNOVA", "MISSILES", "CONFUSION", "OVERPOWERED", "DONOTHELP", "REDALERT", "NOTSAFE", "CRISIS", 
+            "EMERGENCY", "THREAT", "TROUBLE", "HISSSS", "MENACE", "PRECARIOUS", "NOGOZONE", "BADLOCATION", "YOUMIGHTDIE",  "YOUWILLDIE",
+            ];
         this.password = this.passwordList[Math.floor(Math.random()*this.passwordList.length)];
+        console.log(this.password);
         this.passwordPos = [];
 for (let i = 0; i < this.password.length; i++) {
     let pos = Math.floor(Math.random()*64);
@@ -142,6 +138,7 @@ this.passwordPos.sort(function(a,b){return a-b});
         })
         this.submitsquare.on('pointerup',()=>{
             power -= 26;
+            if(power<0) power=0;
             if(this.inputt.text==this.password){
                 this.inputt.text='';
                 this.pomp.text = 'CORRECT!';
@@ -149,8 +146,9 @@ this.passwordPos.sort(function(a,b){return a-b});
                 this.time.delayedCall(1500, function(){this.scene.restart()}, [], this);
             }
             else{
-                this.inputt.text='';
-                this.pomp.text='INCORRECT';
+                if(this.inputt.text.length>0) this.pomp.text='INCORRECT: '+this.inputt.text+' sent instead of '+this.password;
+                else this.pomp.text='INCORRECT: empty message sent';
+                this.inputt.text='';                
                 sendMessage('commsResult',false);
                 this.time.delayedCall(1500, function(){this.scene.restart()}, [], this);
               }
