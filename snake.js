@@ -6,10 +6,11 @@ const DIRECTION = {
   DOWN: 1,
   LEFT: 2,
   RIGHT: 3,
+  RANDOM: ()=>Math.floor(Math.random()*4),
 };
 
 const DIMS = {
-  STEPS_X: 44,
+  STEPS_X: 46,
   STEPS_Y: 33
 }
 
@@ -37,7 +38,8 @@ var SceneSnake = new Phaser.Class({
     this.load.image('snake-icon', 'assets/icon-navigation.png');
     this.load.image('foodBlue', 'assets/blue-particle.png');
     this.load.image('foodGreen', 'assets/green-orb.png');
-    this.load.image('body', 'assets/body2.png');
+    this.load.image('body', 'assets/body4.png');
+    this.load.image('star-particle', 'assets/snake_speed.png');
     this.load.image('power-icon', 'assets/powerupBlue_bolt.png')
     /*
     this.load.image('power-icon', 'assets/powerupBlue_bolt.png');
@@ -55,6 +57,17 @@ var SceneSnake = new Phaser.Class({
     background.setSize(672, 472);
     background.setDisplaySize(672, 472);
     background.depth = -10;
+
+    var speedParticles = this.add.particles('star-particle');
+    this.speedEmitter = speedParticles.createEmitter({
+      speed: 500,
+      scale: { start: 0.05, end: 0 },
+      blendMode: 'ADD',
+      tint: 0x00ff00,      
+      on: false,
+    });
+
+
 
     /*
     this.confusion = this.add.image(0, 0, 'confusion').setOrigin(0);
@@ -105,8 +118,8 @@ var SceneSnake = new Phaser.Class({
         this.speed = 100;
         this.moveTime = 0;
         this.tail = new Phaser.Geom.Point(x, y);
-        this.heading = DIRECTION.RIGHT;
-        this.direction = DIRECTION.RIGHT;
+        this.heading = DIRECTION.RANDOM();
+        this.direction = this.heading;
         this.sceneRef = scene;
       },
 
@@ -144,22 +157,22 @@ var SceneSnake = new Phaser.Class({
         switch (this.heading) {
           case DIRECTION.LEFT:
           this.headPosition.x = Phaser.Math
-            .Wrap(this.headPosition.x - 1, 4, 44);
+            .Wrap(this.headPosition.x - 1, 4, DIMS.STEPS_X);
           break;
 
           case DIRECTION.RIGHT:
           this.headPosition.x = Phaser.Math
-            .Wrap(this.headPosition.x + 1, 4, 44);
+            .Wrap(this.headPosition.x + 1, 4, DIMS.STEPS_X);
           break;
 
           case DIRECTION.UP:
           this.headPosition.y = Phaser.Math
-            .Wrap(this.headPosition.y - 1, 4, 33);
+            .Wrap(this.headPosition.y - 1, 4, DIMS.STEPS_Y);
           break;
 
           case DIRECTION.DOWN:
           this.headPosition.y = Phaser.Math
-            .Wrap(this.headPosition.y + 1, 4, 33);
+            .Wrap(this.headPosition.y + 1, 4, DIMS.STEPS_Y);
           break;
         }
 
@@ -194,6 +207,7 @@ var SceneSnake = new Phaser.Class({
       grow: function () {
         var newPart = this.body.create(this.tail.x, this.tail.y, 'body');
         newPart.setOrigin(0);
+        newPart.setTint()//TODO
       },
 
       collideWithFood: function (food) {
@@ -203,10 +217,6 @@ var SceneSnake = new Phaser.Class({
           food.eat();
           sendMessage('snakeEats',{});
 
-          //  For every 5 items of food eaten we'll increase the snake speed a little
-          if (this.speed > 20 && food.total % 5 === 0) {
-            this.speed -= 5;
-          }
           return true;
         } else {
           return false;
@@ -218,7 +228,7 @@ var SceneSnake = new Phaser.Class({
         this.body.children.each(function (segment) {
           var bx = Math.floor(segment.x / 16);
           var by = Math.floor(segment.y / 16);
-          console.log(grid[by][bx]);
+          //console.log(grid[by][bx]);
           grid[by][bx] = false;
         });
         return grid;
@@ -226,12 +236,15 @@ var SceneSnake = new Phaser.Class({
 
     });
 
-    this.food = new Food(this, 16, 18);
+    this.food = new Food(this, 0, 0);
 
-    this.snake = new Snake(this, 8, 8);
+
+    this.snake = new Snake(this, 24, 18);
 
     //  Create our keyboard controls
     this.cursors = this.input.keyboard.createCursorKeys();
+    this.repositionFood();
+    this.speedEmitter.startFollow(this.snake.head);
 
   },
 
@@ -258,14 +271,23 @@ var SceneSnake = new Phaser.Class({
     }
     if(this.speedKey.isDown) {
       power -= 20*dt/1000;
+      if(power<0) power = 0;
       this.snake.speed = 30;
+      this.speedEmitter.on = true;
       if(!this.cameras.main.shakeEffect.isRunning) this.cameras.main.shakeEffect.start(100,.005,.005);
     }
-    else this.snake.speed = 100;
+    else {
+      this.snake.speed = 100;
+      this.speedEmitter.on = false;
+    }
     if (this.snake.update(timestep)) {
       //  If the snake updated, we need to check for collision against food
       if (this.snake.collideWithFood(this.food)) {
-        this.repositionFood();
+        if(!this.repositionFood()){
+          //No valid spaces to place food, i.e. everything is snake TODO something fancy?
+          power = 0;
+          this.scene.restart();
+        }
       }
     }
 
@@ -299,8 +321,8 @@ var SceneSnake = new Phaser.Class({
     //  Purge out false positions
     var validLocations = [];
 
-    for (let y = 4; y < 30; y++) {
-      for (let x = 4; x < 40; x++) {
+    for (let y = 4; y < 33; y++) {
+      for (let x = 4; x < 46; x++) {
         if (testGrid[y][x] === true) {
           //  Is this position valid for food? If so, add it here ...
           validLocations.push({ x: x, y: y });
@@ -308,7 +330,7 @@ var SceneSnake = new Phaser.Class({
       }
     }
 
-    console.log(validLocations);
+    //console.log(validLocations);
 
     if (validLocations.length > 0) {
       //  Use the RNG to pick a random food position
