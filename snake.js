@@ -22,7 +22,7 @@ var SceneSnake = new Phaser.Class({
     Phaser.Scene.call(this, { key: 'SceneSnake' });
     this.icon;
     this.backKey;
-    this.spaceKey;
+    this.speedKey;
 
     this.snake;
     this.food;
@@ -37,11 +37,11 @@ var SceneSnake = new Phaser.Class({
     this.load.image('foodGreen', 'assets/green-orb.png');
     this.load.image('body', 'assets/body4.png');
     this.load.image('star-particle', 'assets/snake_speed.png');
-    this.load.image('power-icon', 'assets/powerupBlue_bolt.png')
+    this.load.image('power-icon', 'assets/powerupBlue_bolt.png');
+    this.load.image('speed-button', 'assets/speedometer-greener.png');
   },
 
   create: function () {
-    this.speedKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     var powerIcon = this.add.image(32,CANVAS_HEIGHT-16,'power-icon');
     powerIcon.depth = 5;
     this.powerBar = this.add.graphics();
@@ -59,6 +59,11 @@ var SceneSnake = new Phaser.Class({
       tint: 0x00ff00,      
       on: false,
     });
+
+    //Speed button
+    this.speedButton = this.add.image(CANVAS_WIDTH-64, CANVAS_HEIGHT-64, 'speed-button');
+    this.speedButton.depth = 5;
+    this.speedButton.alpha = 0.75;
 
     //Instructions
     this.instructionsBackground = this.add.image(0,0, 'background').setOrigin(0);
@@ -79,7 +84,13 @@ var SceneSnake = new Phaser.Class({
     this.icon.scaleX = 1 / 8;
     this.icon.scaleY = 1 / 8;
     this.backKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
-    this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACEBAR);
+    this.speedKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.upKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+    this.downKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+    this.leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+    this.rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+
 
     var Food = new Phaser.Class({
 
@@ -195,7 +206,6 @@ var SceneSnake = new Phaser.Class({
 
           return false;
         } else {
-          //this.speed -= 5;
           //  Update the timer ready for the next movement
           this.moveTime = time + this.speed;
           return true;
@@ -205,7 +215,6 @@ var SceneSnake = new Phaser.Class({
       grow: function () {
         var newPart = this.body.create(this.tail.x, this.tail.y, 'body');
         newPart.setOrigin(0);
-        newPart.setTint()//TODO
       },
 
       collideWithFood: function (food) {
@@ -235,14 +244,37 @@ var SceneSnake = new Phaser.Class({
     });
 
     this.food = new Food(this, 0, 0);
-
-
     this.snake = new Snake(this, 24, 18);
 
-    //  Create our keyboard controls
-    this.cursors = this.input.keyboard.createCursorKeys();
     this.repositionFood();
     this.speedEmitter.startFollow(this.snake.head);
+
+    //Handle steering with a mouse/touch
+    this.input.on('pointerdown', function (pointer) {
+      this.lastPress = this.time.now;
+      if(Phaser.Math.Distance.BetweenPoints(pointer.position, this.speedButton) <= 80){
+        this.speedPressed = true;
+      }
+      else if(this.snake.direction === DIRECTION.RIGHT ||this.snake.direction === DIRECTION.LEFT){
+        if(pointer.y > CANVAS_HEIGHT/2) this.snake.faceDown();
+        else this.snake.faceUp();
+      }else {
+        if(pointer.x > CANVAS_WIDTH/2) this.snake.faceRight();
+        else this.snake.faceLeft();
+      }
+    }, this);
+    this.input.on('pointermove', function (pointer) {
+      if(!pointer.isDown) return;
+      var oldDistance = Phaser.Math.Distance.BetweenPoints(pointer.prevPosition, this.speedButton);
+      var newDistance = Phaser.Math.Distance.BetweenPoints(pointer.position, this.speedButton);
+      if(oldDistance <= 80 && newDistance > 80) this.speedPressed = false;
+      else if(newDistance <= 80 && oldDistance > 80) this.speedPressed = true;;
+         
+    }, this);
+    this.input.on('pointerup', function (pointer) {
+      if(Phaser.Math.Distance.BetweenPoints(pointer.position, this.speedButton) <= 80) this.speedPressed=false;
+    }, this);
+    
 
   },
 
@@ -258,20 +290,21 @@ var SceneSnake = new Phaser.Class({
       this.instructionsBackground.setVisible(false);
     }
 
+    this.speedButton.setVisible(timestep - this.lastPress < 7000);
+
     if (!this.snake.alive) {
       this.scene.restart();
     }
-    if (this.cursors.left.isDown) {
+    if (this.cursors.left.isDown || this.leftKey.isDown) {
       this.snake.faceLeft();
-    } else if (this.cursors.right.isDown) {
+    } else if (this.cursors.right.isDown || this.rightKey.isDown) {
       this.snake.faceRight();
-    } else if (this.cursors.up.isDown) {
-      console.log('Trying to go up');
+    } else if (this.cursors.up.isDown || this.upKey.isDown) {
       this.snake.faceUp();
-    } else if (this.cursors.down.isDown) {
+    } else if (this.cursors.down.isDown || this.downKey.isDown) {
       this.snake.faceDown();
     }
-    if(this.speedKey.isDown) {
+    if(this.speedKey.isDown || this.speedPressed) {
       power -= 20*dt/1000;
       if(power<0) power = 0;
       this.snake.speed = 30;
