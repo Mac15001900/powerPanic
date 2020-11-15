@@ -1,6 +1,3 @@
-// add the following to the scene update method prevent playing before the game starts
-// if(gameStatus !== GS.GAME_STARTED)
-
 const DIRECTION = {
   UP: 0,
   DOWN: 1,
@@ -41,10 +38,6 @@ var SceneSnake = new Phaser.Class({
     this.load.image('body', 'assets/body4.png');
     this.load.image('star-particle', 'assets/snake_speed.png');
     this.load.image('power-icon', 'assets/powerupBlue_bolt.png')
-    /*
-    this.load.image('power-icon', 'assets/powerupBlue_bolt.png');
-    this.load.image('confusion', 'assets/confusion.png');
-    */
   },
 
   create: function () {
@@ -67,16 +60,21 @@ var SceneSnake = new Phaser.Class({
       on: false,
     });
 
+    //Instructions
+    this.instructionsBackground = this.add.image(0,0, 'background').setOrigin(0);
+    this.instructionsBackground.setScale(2);
+    this.instructionsBackground.depth = 9001;
+
+    this.instructionsText = this.add.text(20, 64, '', { font: "16px Arial", fill: "#19de65", wordWrap:{width:CANVAS_WIDTH-40} });
+    this.instructionsText.text = 'You are the navigation expert.\n\nYour job is to scan the area around the ship and find regions without asteroids (the green circles). '+
+      "Use the arrow keys to choose the direction in which to scan.\n\n"+
+      "Sadly the sensor software is a bit buggy and will crash if you scan the same area twice, making the pilot blind for a few seconds. "+
+      "Make sure to warn them if that's about to happen!\n\n"+
+      "As with all stations, you need to prevent navigation from overloading by using up power. You can do this by holding spacebar to speed up scanning.\n\n"+
+      "\nWaiting for the pilot to start the game...";
+    this.instructionsText.depth = 9002;
 
 
-    /*
-    this.confusion = this.add.image(0, 0, 'confusion').setOrigin(0);
-    this.confusion.depth = 9001;
-    this.confusion.setVisible(false);
-    */
-
-    var text = this.add.text(200, 0, '', { font: "28px Arial", fill: "#19de65" });
-    text.text = 'Your power is becoming worrisome!';
     this.icon = this.add.image(32,32,'snake-icon');
     this.icon.scaleX = 1 / 8;
     this.icon.scaleY = 1 / 8;
@@ -249,12 +247,16 @@ var SceneSnake = new Phaser.Class({
   },
 
   update: function (timestep, dt) {
-    if(this.backKey.isDown){
-      console.log('Switching back to menu');
-      this.scene.start('SceneStart');
-      switchToScene(this,'SceneStart');
+    if(gameStatus !== GS.GAME_STARTED && !DEBUG_IGNORE_GAME_STATE){
+      if(this.backKey.isDown){
+        console.log('Switching back to menu');
+        switchToScene(this,'SceneStart');
+      }
+      return;
+    } else {
+      this.instructionsText.setVisible(false);
+      this.instructionsBackground.setVisible(false);
     }
-    if(gameStatus !== GS.GAME_STARTED && !DEBUG_IGNORE_GAME_STATE) return;
 
     if (!this.snake.alive) {
       this.scene.restart();
