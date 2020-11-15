@@ -5,6 +5,8 @@ const DEBUG_USE_RANDOM_SERVER = false;
 const DEBUG_RANDOMISE_USERNAME = false;
 const DEBUG_IGNORE_GAME_STATE = false;
 const DEBUG_IMMORTAL = false;
+const DEBUG_PILOT_PACKET_SENDING = false;
+const DEBUG_DISABLE_MESSAGES = false;
 
 var SceneStart = new Phaser.Class({
 
@@ -58,8 +60,6 @@ var SceneStart = new Phaser.Class({
         logo.setCollideWorldBounds(true);
 
         emitter.startFollow(logo);
-
-        console.log('Does any of this work?');
 
         this.input.on('pointerdown', function () {
 
@@ -206,6 +206,7 @@ const drone = new ScaleDrone(CHANNEL_ID, {
 });
 
 function sendMessage(type, content) {
+    if(DEBUG_DISABLE_MESSAGES) return;
   drone.publish({
     room: roomName,
     message: {
@@ -285,8 +286,8 @@ drone.on('open', error => {
                 case 'startGame': //Sent when the pilot starts the game. Scenes should listen and react to this
                     gameStatus = GS.GAME_STARTED;
                     break;
-                case 'endGame': //Sent when the game ends. Scenes should listen and react to this
-                    //gameStatus = GS.GAME_OVER;
+                case 'endGame': //Sent when the game ends.
+                    //TODO create a game over screen
                     switchToScene(getActiveScene(),'SceneStart');
                     power = 0;
                     gameStatus = GS.CONNECTED;                    
@@ -301,5 +302,3 @@ drone.on('open', error => {
     });
 
 });
-
-/*testing that i have access*/
