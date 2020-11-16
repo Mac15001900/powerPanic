@@ -25,7 +25,9 @@ var SceneWeapons = new Phaser.Class({
         this.load.image('missile-top', 'assets/missile-top.png');   
         this.load.image('missile-mid1', 'assets/missile-middle1.png');   
         this.load.image('missile-mid2', 'assets/missile-middle2.png');   
-        this.load.image('missile-bottom', 'assets/missile-bottom.png');   
+        this.load.image('missile-bottom', 'assets/missile-bottom.png'); 
+
+        this.load.image('red-particle', 'assets/red-particle.png');  
         
         this.load.image('background', 'assets/black-stars.png');   
     },
@@ -45,7 +47,7 @@ var SceneWeapons = new Phaser.Class({
 
         var g1 = this.add.grid(350, 399, 100, 400, 4, 4, 0x057605);
         
-        this.powerGain = 3;
+        this.powerGain = 2.5;
         var powerIcon = this.add.image(32,CANVAS_HEIGHT-16,'power-icon');
         powerIcon.depth = 5;
         this.powerBar = this.add.graphics();
@@ -59,7 +61,11 @@ var SceneWeapons = new Phaser.Class({
 
         this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         
-        this.theGroup = this.add.group();
+        this.theGroup = this.physics.add.group();
+        //Whenever two objects from this group touch, call onCollision
+        this.physics.add.overlap(this.theGroup, this.theGroup, this.onCollision, null, this);
+        //On collision with world bounds, call onBoundCollision
+        this.physics.world.on('worldbounds', this.onBoundsCollision, this);
 
         var currentPiece;
 
@@ -75,6 +81,21 @@ var SceneWeapons = new Phaser.Class({
         this.top = {
             name: 'missile-top'
         };
+
+        this.input.on('pointerdown', function () {
+            this.dropPiece(); 
+        }, this);
+
+        var weldingParticles = this.add.particles('red-particle');
+        this.weldingEmitter = weldingParticles.createEmitter({
+            speed: 400,
+            scale: { start: 1, end: 0 },
+            blendMode: 'ADD',
+        });
+        this.weldingEmitter.setFrequency(-1,10);
+        this.weldingEmitter.setLifespan(350);
+        this.weldingEmitter.setGravityY(2500);
+
 
         this.initializeMissileGame(this.bottom);     
     },
@@ -110,39 +131,47 @@ var SceneWeapons = new Phaser.Class({
     },
     
     startPiece: function(piece) {
-        let x, y, i, v;
+        let x, y, i, v, id;
         if (piece.name === this.bottom.name) {
             x = 700;
             y = 500;
             i = 'missile-bottom';
             v = -200;
+            id = 0;
         } else if (piece.name === this.mid1.name) {
             x = 700;
             y = 400;
             i = 'missile-mid1';
             v = -300;
+            id = 1;
         } else if (piece.name === this.mid2.name) {
             x = 700;
             y = 300;
             i = 'missile-mid2';
             v = -400;
+            id = 2;
         } else if (piece.name === this.top.name) {            
             x = 700;
             y = 200;
             i = 'missile-top';
             v = -500;
+            id = 3;
         }
 
-        piece = this.physics.add.image(x,y,i);
+        piece = this.physics.add.image(Phaser.Math.RND.between(CANVAS_WIDTH*.66,CANVAS_WIDTH-50),y,i);
+        
+
+        this.theGroup.add(piece);
+
         piece.setVelocity(v, 0);
         piece.setBounce(1, 0);
         piece.setCollideWorldBounds(true);
-
-        this.theGroup.add(piece);
+        piece.id = id;
+        piece.body.onWorldBounds = true;
         
-        this.physics.add.collider(this.theGroup, this.currentPiece);
-        this.physics.add.collider(this.theGroup, piece);
-        this.physics.add.collider(piece, this.currentPiece);
+        //this.physics.add.collider(this.theGroup, this.currentPiece);
+        //this.physics.add.collider(this.theGroup, piece);
+        //this.physics.add.collider(piece, this.currentPiece);
 
         if (piece.name === this.top.name) {
             console.log("test--test--test--test--test--test--");
@@ -161,7 +190,16 @@ var SceneWeapons = new Phaser.Class({
 
     dropPiece: function () {        
         
-        this.currentPiece.setVelocity(0,900);
+        this.currentPiece.setVelocity(0,600);
+        this.currentPiece.dropped = true;
+        //this.currentPiece.setGravityY(100);
+        //this.time.delayedCall(1000, piece => piece.setImmovable(true), [this.currentPiece], this);
+        if(this.currentPiece.id >= 2){
+            //Freeze a piece below the top one
+            var targetIndex = this.currentPiece.id-2;
+            //this.theGroup.children.entries.filter(c=>c.id==targetIndex)[0].setImmovable(true);
+        }
+        
 
         if (this.currentPiece.texture.key === this.mid2.name) {
             this.startPiece(this.top);
@@ -170,21 +208,50 @@ var SceneWeapons = new Phaser.Class({
         } else if (this.currentPiece.texture.key === this.bottom.name) {
             this.startPiece(this.mid1);            
         } else {
-            this.time.delayedCall(1000, function(){this.checkVictory(this.currentPiece)}, [], this);
+            //this.time.delayedCall(5000, function(){this.checkVictory(this.currentPiece)}, [], this);
         }
+
+
+    },
+
+    getPiece: function(id){
+        return this.theGroup.children.entries.filter(p=>p.id === id)[0];
+    },
+
+    onCollision: function(first, second){
+        if(first.landed && second.landed) return;
+        first.setVelocity(0,0);
+        first.landed = true;
+        second.setVelocity(0,0);
+        second.landed = true;
+        this.cameras.main.shakeEffect.start(100,.010,.010);
+        if(first.id === 3) this.checkVictory(first);
+        if(second.id === 3) this.checkVictory(second);
+        console.log('Collision between '+first.id+' and '+second.id);
+
+        this.weldingEmitter.setPosition((first.x+second.x)/2, (first.y+second.y)/2);
+        this.weldingEmitter.explode();
+    },
+
+    onBoundsCollision: function(body){
+        var piece = body.gameObject;
+        if(!piece.dropped) return; //Return if not dropped yet
+        piece.setVelocity(0,0);
+        piece.landed;
+        this.cameras.main.shakeEffect.start(100,.010,.010);
+        if(piece.id === 3) this.checkVictory(piece);
     },
 
     checkVictory: function(piece){
         if(piece.y<CANVAS_HEIGHT-160){
-            console.log('Vicotory!');
-            power-=30;
+            console.log('Victory!');
+            power-=35;
             if(power<0) power=0;
-            sendMessage('missile');
-            this.scene.restart();
+            sendMessage('missile', {offset: piece.x - this.getPiece(0).x});
         }else{
-            console.log('Not Victory!');
-            this.scene.restart();
+            console.log('Not Victory!');            
         }
+        this.time.delayedCall(1000, function(){this.scene.restart()}, [], this);
     },
 
     receiveMessage: function (data) {

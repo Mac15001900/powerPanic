@@ -23,7 +23,7 @@ var ScenePiloting = new Phaser.Class({
         this.load.image('friendly-ship-2', 'assets/ship-green-2.png');
         this.load.image('friendly-ship-3', 'assets/ship-green-3.png');
         this.load.image('exhaust-particle', 'assets/blue-particle.png');
-        this.load.image('explosion-particle', 'assets/red-particle.png');
+        this.load.image('red-particle', 'assets/red-particle.png');
 
         this.load.image('meteor-big-1', 'assets/meteorBrown_big1.png');
         this.load.image('meteor-big-2', 'assets/meteorBrown_big2.png');
@@ -154,7 +154,7 @@ var ScenePiloting = new Phaser.Class({
             this.input.keyboard.on('keyup', function (event) {
                 switch(event.key){
                     case 't': sendMessage('test','This is the captain speaking.'); break;
-                    case 'm': sendMessage('missile'); break;
+                    case 'm': sendMessage('missile', {offset:0}); break;
                     case 'e': sendMessage('snakeEats'); break;
                     case 'r': sendMessage('snakeDies'); break;
                     case 'o': sendMessage('commsResult', true); break;
@@ -182,7 +182,7 @@ var ScenePiloting = new Phaser.Class({
         this.engineEmitter.startFollow(this.ship);
         console.log(this.engineEmitter);
 
-        var explosionParticles = this.add.particles('explosion-particle');
+        var explosionParticles = this.add.particles('red-particle');
 
         this.explosionEmitter = explosionParticles.createEmitter({
             speed: 500,
@@ -192,7 +192,7 @@ var ScenePiloting = new Phaser.Class({
         this.explosionEmitter.setFrequency(-1,500);
         this.explosionEmitter.setLifespan(500);
 
-        this.explosionSprite = this.physics.add.sprite(CANVAS_HEIGHT/2,CANVAS_WIDTH/2,'explosion-particle');
+        this.explosionSprite = this.physics.add.sprite(CANVAS_HEIGHT/2,CANVAS_WIDTH/2,'red-particle');
         this.explosionSprite.depth = 5;
         this.explosionSprite.setScale(3);
         this.explosionSprite.setVisible(false);
@@ -343,7 +343,7 @@ var ScenePiloting = new Phaser.Class({
     },
 
     vec: function(x, y, scale){
-        if(!scale) return new Phaser.Math.Vector2(x, y);
+        if(scale === undefined) return new Phaser.Math.Vector2(x, y);
         else return new Phaser.Math.Vector2(x, y).normalize().scale(scale);        
     },
 
