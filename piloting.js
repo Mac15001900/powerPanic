@@ -73,12 +73,15 @@ var ScenePiloting = new Phaser.Class({
         MISSILE_TIME: 500,
         MISSILE_SPEED: 500,
         MISSILE_RADIUS: 200,
+        MISSILE_OFFSET_MULTIPLIER: Math.PI/180,
         FRIENSHIP_LOSS_ON_KILL: 10,
         FRIENSHIP_LOSS_ON_MISS: 1,        
         POWER_GAIN: 3,
         POWER_USAGE: 6,
         SHIP_EFFECT_TIME: 7500,
         ASTEROID_EFFECT_TIME: 3000,
+
+        TEST_OFFSET: 50,
     },
 
     effects: {
@@ -154,13 +157,13 @@ var ScenePiloting = new Phaser.Class({
             this.input.keyboard.on('keyup', function (event) {
                 switch(event.key){
                     case 't': sendMessage('test','This is the captain speaking.'); break;
-                    case 'm': sendMessage('missile', {offset:0}); break;
+                    case 'm': sendMessage('missile', {offset:this.params.TEST_OFFSET}); break;
                     case 'e': sendMessage('snakeEats'); break;
                     case 'r': sendMessage('snakeDies'); break;
                     case 'o': sendMessage('commsResult', true); break;
                     case 'p': sendMessage('commsResult', false); break;
                 }
-            });    
+            }, this);    
         }
         
         console.log(this.ship);
@@ -535,9 +538,11 @@ var ScenePiloting = new Phaser.Class({
                 this.effects.missileActive = true;
                 this.effects.missileTimer = this.params.MISSILE_TIME;
                 this.missile.setPosition(this.ship.x,this.ship.y);
-                this.missile.rotation = this.ship.rotation;
+                this.missile.rotation = this.ship.rotation + data.content.offset * this.params.MISSILE_OFFSET_MULTIPLIER;
+                //this.missile.rotation = this.ship.rotation + Math.PI;
+                console.log('Rotation of '+this.ship.rotation+' was changed to '+this.missile.rotation);
                 this.missile.setVisible(true);
-                this.missile.setVelocity(Math.sin(this.ship.rotation)*this.params.MISSILE_SPEED, -Math.cos(this.ship.rotation)*this.params.MISSILE_SPEED);
+                this.missile.setVelocity(Math.sin(this.missile.rotation)*this.params.MISSILE_SPEED, -Math.cos(this.missile.rotation)*this.params.MISSILE_SPEED);
                 break;
             case 'commsResult':
                 if(data.content){
