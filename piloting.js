@@ -548,14 +548,14 @@ var ScenePiloting = new Phaser.Class({
                         this.moveTowards(target, direction.x, direction.y, this.params.FRIENDLY_ESCAPE_SPEED, Math.PI/2); //sprite, x, y, speed, offset=0
                     }
                     this.shipMinusIcon.setVisible(true);
-                    this.time.delayedCall(1000, this.shipMinusIcon.setVisible(), [false], this);
+                    this.time.delayedCall(1000, () => this.shipMinusIcon.setVisible(false), [], this);
                 }else{
                     for (var i = 0; i < this.params.EXTRA_FRIENDLY; i++) {
                         this.time.delayedCall(Math.random()*this.params.EXTRA_FRIENDLY_PERIOD, this.spawnFriendlyShip, [true], this);
                     }
 
                     this.shipPlusIcon.setVisible(true);
-                    this.time.delayedCall(1000, this.shipPlusIcon.setVisible(), [false], this);
+                    this.time.delayedCall(1000, () => this.shipPlusIcon.setVisible(false), [], this);
                 }
                 break;
             case 'snakeEats':
