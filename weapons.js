@@ -1,10 +1,3 @@
-/*
-
-wip/todo:
-    - trigger restart on fail/success
-
-*/
-
 var SceneWeapons = new Phaser.Class({
 
     Extends: Phaser.Scene,
@@ -37,13 +30,17 @@ var SceneWeapons = new Phaser.Class({
         this.background = this.add.image(0, 0, 'background').setOrigin(0).setScale(4);
         this.background.depth = 100;
 
-        this.instrutions = this.add.text(20, 64, '', { font: "24px Arial", fill: "#19de65" });
+        this.instrutions = this.add.text(40, 64, '', { font: "16px Arial", fill: "#19de65", wordWrap:{width:CANVAS_WIDTH-40} });
         this.instrutions.depth = 101;        
 
-        this.instrutions.text = "Your job is to build a missile!\nUse the spacebar to drop a piece of the missile\nStack 4 pieces and a winner is you!";   
+        this.instrutions.text = "You are the weapons expert.\n\nYour job is to build and fire missiles, using up a lot of energy. " +
+            "Drop down pieces with spacebar or by touching/clicking the screen. Stack 4 pieces to create a missile.\n\n" +
+            "Missiles are fired immidiately after being built. Warn your pilot before you do that - or you'll risk a lot of civilian casualties. "+
+            "If your missile is skewed to the side, it will skew in that direction when fired - also warn the pilot about that!\n\n"+
+            "As with any station, make sure the power bar never overloads (firing missiles decreases it).\n\n" +
+            "\nWaiting for the pilot to start the game...";
 
         this.isPlaying = false;
-        var didWin = false;
 
         var g1 = this.add.grid(350, 399, 100, 400, 4, 4, 0x057605);
         
@@ -52,19 +49,17 @@ var SceneWeapons = new Phaser.Class({
         powerIcon.depth = 5;
         this.powerBar = this.add.graphics();
 
-        var text = this.add.text(200, 100, '', { font: "32px Arial", fill: "#19de65" });
-        text.text = 'You are in weapons';
         this.icon = this.add.image(32,32,'weapons-icon');
         this.icon.scaleX = 1/8;
         this.icon.scaleY = 1/8;
-        this.backKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
 
+        this.backKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
         this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         
         this.theGroup = this.physics.add.group();
-        //Whenever two objects from this group touch, call onCollision
+        //When two objects from this group touch, call onCollision
         this.physics.add.overlap(this.theGroup, this.theGroup, this.onCollision, null, this);
-        //On collision with world bounds, call onBoundCollision
+        //When an object touches world bounds, call onBoundCollision
         this.physics.world.on('worldbounds', this.onBoundsCollision, this);
 
         var currentPiece;
@@ -83,7 +78,7 @@ var SceneWeapons = new Phaser.Class({
         };
 
         this.input.on('pointerdown', function () {
-            this.dropPiece(); 
+            if(gameStatus === GS.GAME_STARTED || DEBUG_IGNORE_GAME_STATE) this.dropPiece(); 
         }, this);
 
         var weldingParticles = this.add.particles('red-particle');
@@ -91,11 +86,11 @@ var SceneWeapons = new Phaser.Class({
             speed: 400,
             scale: { start: 1, end: 0 },
             blendMode: 'ADD',
+            lifespan: 350,
+            gravityY: 2500,
+            frequency: -1,
+            quantity: 11,
         });
-        this.weldingEmitter.setFrequency(-1,10);
-        this.weldingEmitter.setLifespan(350);
-        this.weldingEmitter.setGravityY(2500);
-
 
         this.initializeMissileGame(this.bottom);     
     },
@@ -109,20 +104,13 @@ var SceneWeapons = new Phaser.Class({
         this.instrutions.setVisible(false);
         this.background.depth = -10;
 
-
         power += this.powerGain*dt/1000;
         this.powerBar.clear();
         this.powerBar.fillStyle(0x5555ff, 1);
         this.powerBar.fillRect(16, CANVAS_HEIGHT-power*5 - 16, 32, power*5);
         if(power > 100) endGame('Power overload! The weapons system did a kaboom!!');        
 
-        if(Phaser.Input.Keyboard.JustDown(this.spaceKey))
-            this.dropPiece();     
-            
-        if (this.didWin == true){
-            this.time.delayedCall(3000, function(){this.scene.restart()},[],this);
-        }
-            
+        if(Phaser.Input.Keyboard.JustDown(this.spaceKey)) this.dropPiece();     
     },
 
     initializeMissileGame: function(piece) {
@@ -158,9 +146,9 @@ var SceneWeapons = new Phaser.Class({
             id = 3;
         }
 
-        piece = this.physics.add.image(Phaser.Math.RND.between(CANVAS_WIDTH*.66,CANVAS_WIDTH-50),y,i);
+        //Randomising x to prevent spamming spacebar from being a viable strategy
+        piece = this.physics.add.image(Phaser.Math.RND.between(CANVAS_WIDTH*.66,CANVAS_WIDTH-50), y, i);
         
-
         this.theGroup.add(piece);
 
         piece.setVelocity(v, 0);
@@ -168,38 +156,13 @@ var SceneWeapons = new Phaser.Class({
         piece.setCollideWorldBounds(true);
         piece.id = id;
         piece.body.onWorldBounds = true;
-        
-        //this.physics.add.collider(this.theGroup, this.currentPiece);
-        //this.physics.add.collider(this.theGroup, piece);
-        //this.physics.add.collider(piece, this.currentPiece);
-
-        if (piece.name === this.top.name) {
-            console.log("test--test--test--test--test--test--");
-            this.physics.add.collider(piece, this.currentPiece, function() {                
-                console.log("Test3");  
-            });  
-        }
-
-        // this.physics.add.collider(piece, this.currentPiece, function() {
-        //     if(piece.name == this.top.name)
-        //         console.log("Test3");  
-        // });        
 
         this.currentPiece = piece;
     },
 
-    dropPiece: function () {        
-        
+    dropPiece: function () {                
         this.currentPiece.setVelocity(0,600);
         this.currentPiece.dropped = true;
-        //this.currentPiece.setGravityY(100);
-        //this.time.delayedCall(1000, piece => piece.setImmovable(true), [this.currentPiece], this);
-        if(this.currentPiece.id >= 2){
-            //Freeze a piece below the top one
-            var targetIndex = this.currentPiece.id-2;
-            //this.theGroup.children.entries.filter(c=>c.id==targetIndex)[0].setImmovable(true);
-        }
-        
 
         if (this.currentPiece.texture.key === this.mid2.name) {
             this.startPiece(this.top);
@@ -207,11 +170,7 @@ var SceneWeapons = new Phaser.Class({
             this.startPiece(this.mid2);
         } else if (this.currentPiece.texture.key === this.bottom.name) {
             this.startPiece(this.mid1);            
-        } else {
-            //this.time.delayedCall(5000, function(){this.checkVictory(this.currentPiece)}, [], this);
-        }
-
-
+        } 
     },
 
     getPiece: function(id){
@@ -226,7 +185,7 @@ var SceneWeapons = new Phaser.Class({
         second.landed = true;
         this.cameras.main.shakeEffect.start(100,.010,.010);
         if(first.id === 3) this.checkVictory(first);
-        if(second.id === 3) this.checkVictory(second);
+        else if(second.id === 3) this.checkVictory(second);
         console.log('Collision between '+first.id+' and '+second.id);
 
         this.weldingEmitter.setPosition((first.x+second.x)/2, (first.y+second.y)/2);
