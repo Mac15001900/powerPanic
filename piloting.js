@@ -34,7 +34,8 @@ var ScenePiloting = new Phaser.Class({
         this.load.image('meteor-small-1', 'assets/meteorBrown_small1.png');
         this.load.image('meteor-small-2', 'assets/meteorBrown_small2.png');
 
-        this.load.image('background', 'assets/black-stars.png');
+        //this.load.image('background', 'assets/black-stars.png');
+        this.load.image('stars-background', 'assets/blue-sky.jpg');
         this.load.image('laser', 'assets/laserBlue01.png');
         this.load.image('confusion', 'assets/confusion.png');
         this.load.image('missile', 'assets/spaceMissiles_003.png');
@@ -69,7 +70,7 @@ var ScenePiloting = new Phaser.Class({
         FRIENDLY_SPEED: 50,
         FRIENDLY_SIDE_SPEED: 40,
         FRIENDLY_ESCAPE_SPEED: 70,
-        FRIENDLY_SPAWN_COOLDOWN: 1000,
+        FRIENDLY_SPAWN_COOLDOWN: 1500,
         MISSILE_TIME: 500,
         MISSILE_SPEED: 500,
         MISSILE_RADIUS: 200,
@@ -80,8 +81,6 @@ var ScenePiloting = new Phaser.Class({
         POWER_USAGE: 6,
         SHIP_EFFECT_TIME: 7500,
         ASTEROID_EFFECT_TIME: 3000,
-
-        TEST_OFFSET: 50,
     },
 
     effects: {
@@ -95,8 +94,13 @@ var ScenePiloting = new Phaser.Class({
     },
 
     create: function () {
-        this.background = this.add.image(0, 0, 'background').setOrigin(0).setScale(4);
+        this.background = this.add.image(0, 0, 'stars-background').setOrigin(0).setScale(1.6);
         this.background.depth = 100;
+
+        /*this.background1 = this.add.image(0, 0, 'stars-background').setOrigin(0);
+        this.background2 = this.add.image(512, 0, 'stars-background').setOrigin(0);
+        this.background3 = this.add.image(0, 512, 'stars-background').setOrigin(0);
+        this.background4 = this.add.image(512, 512, 'stars-background').setOrigin(0);*/
 
         this.confusion = this.add.image(0, 0, 'confusion').setOrigin(0);
         this.confusion.depth = 9001;
@@ -157,7 +161,7 @@ var ScenePiloting = new Phaser.Class({
             this.input.keyboard.on('keyup', function (event) {
                 switch(event.key){
                     case 't': sendMessage('test','This is the captain speaking.'); break;
-                    case 'm': sendMessage('missile', {offset:this.params.TEST_OFFSET}); break;
+                    case 'm': sendMessage('missile', {offset:0}); break;
                     case 'e': sendMessage('snakeEats'); break;
                     case 'r': sendMessage('snakeDies'); break;
                     case 'o': sendMessage('commsResult', true); break;
@@ -192,7 +196,7 @@ var ScenePiloting = new Phaser.Class({
             scale: { start: 1, end: 0 },
             blendMode: 'ADD',
         });
-        this.explosionEmitter.setFrequency(-1,500);
+        this.explosionEmitter.setFrequency(-1,250);
         this.explosionEmitter.setLifespan(500);
 
         this.explosionSprite = this.physics.add.sprite(CANVAS_HEIGHT/2,CANVAS_WIDTH/2,'red-particle');
@@ -421,6 +425,7 @@ var ScenePiloting = new Phaser.Class({
             var newBullet = this.bullets.children.entries[this.bullets.children.entries.length-1];;
             newBullet.rotation = this.ship.rotation;
             newBullet.setVelocity(this.params.BULLET_SPEED * xDirection, this.params.BULLET_SPEED * yDirection);
+            newBullet.setCircle(newBullet.width/2,0, newBullet.height/2-newBullet.width/2);
             
             if(!this.cameras.main.shakeEffect.isRunning) this.cameras.main.shakeEffect.start(this.laserCooldown/2,.005,.005);
 
