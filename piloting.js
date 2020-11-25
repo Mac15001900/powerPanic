@@ -152,10 +152,12 @@ var ScenePiloting = new Phaser.Class({
         this.ship.body.bounceX = 1;
         this.ship.body.bounceY = 1;
         this.ship.body.collideWorldBounds = true;
+        this.ship.setBounce(0.25);
         this.ship.body.dragX = 6;
         this.ship.body.dragY = 6;
         this.ship.depth = 10;
         this.ship.setScale(0.5);
+        this.ship.setSize(this.ship.width/2,this.ship.height/2);
 
         if(DEBUG_PILOT_PACKET_SENDING){
             this.input.keyboard.on('keyup', function (event) {
@@ -199,10 +201,12 @@ var ScenePiloting = new Phaser.Class({
         this.explosionEmitter.setFrequency(-1,250);
         this.explosionEmitter.setLifespan(500);
 
-        this.explosionSprite = this.physics.add.sprite(CANVAS_HEIGHT/2,CANVAS_WIDTH/2,'red-particle');
+        this.explosionSprite = this.physics.add.sprite(0,0,'red-particle');
         this.explosionSprite.depth = 5;
         this.explosionSprite.setScale(3);
         this.explosionSprite.setVisible(false);
+        this.explosionSprite.debugShowBody = false;
+        this.explosionSprite.debugShowVelocity = false;
 
         this.missile = this.physics.add.sprite(0,0,'missile');
         this.missile.setVisible(false);
@@ -499,6 +503,7 @@ var ScenePiloting = new Phaser.Class({
                 for (var i = 0; i < killList.length; i++) {
                     this.killFriendly(killList[i]);
                 }
+                this.missile.body.reset(0,0);
             } else {
                 //Missile is still in flight
                 this.adjustRotation(this.missile, Math.PI/2);
