@@ -75,6 +75,7 @@ var ScenePiloting = new Phaser.Class({
         MISSILE_SPEED: 500,
         MISSILE_RADIUS: 200,
         MISSILE_OFFSET_MULTIPLIER: Math.PI/180,
+        MISSILE_EXHAUST_SPREAD: 10,
         FRIENSHIP_LOSS_ON_KILL: 10,
         FRIENSHIP_LOSS_ON_MISS: 1,        
         POWER_GAIN: 3,
@@ -95,7 +96,6 @@ var ScenePiloting = new Phaser.Class({
 
     create: function () {
         this.background = this.add.image(0, 0, 'stars-background').setOrigin(0).setScale(1.6);
-        this.background.depth = 100;
 
         /*this.background1 = this.add.image(0, 0, 'stars-background').setOrigin(0);
         this.background2 = this.add.image(512, 0, 'stars-background').setOrigin(0);
@@ -103,11 +103,9 @@ var ScenePiloting = new Phaser.Class({
         this.background4 = this.add.image(512, 512, 'stars-background').setOrigin(0);*/
 
         this.confusion = this.add.image(0, 0, 'confusion').setOrigin(0);
-        this.confusion.depth = 9001;
         this.confusion.setVisible(false);
 
         this.instrutions = this.add.text(20, 64, '', { font: "24px Arial", fill: "#19de65" });
-        this.instrutions.depth = 101;        
 
         this.instrutions.text = "You are in the pilots seat\n"
             + "Your job is to pilot the ship, making sure it survives and doesn't cause\ntoo many casualties.\n"
@@ -141,10 +139,6 @@ var ScenePiloting = new Phaser.Class({
         this.shipPlusIcon.setVisible(false);
         this.asteroidMinusIcon.setVisible(false);
         this.asteroidPlusIcon.setVisible(false);
-        this.shipMinusIcon.depth = 5;
-        this.shipPlusIcon.depth = 5;
-        this.asteroidMinusIcon.depth = 5;
-        this.asteroidPlusIcon.depth = 5;
 
 
         this.ship = this.physics.add.sprite(CANVAS_HEIGHT/2,CANVAS_WIDTH/2,'ship');
@@ -153,9 +147,8 @@ var ScenePiloting = new Phaser.Class({
         this.ship.body.bounceY = 1;
         this.ship.body.collideWorldBounds = true;
         this.ship.setBounce(0.25);
-        this.ship.body.dragX = 6;
-        this.ship.body.dragY = 6;
-        this.ship.depth = 10;
+        this.ship.body.setDrag(0.999);
+        this.ship.body.useDamping = true;
         this.ship.setScale(0.5);
         this.ship.setSize(this.ship.width/2,this.ship.height/2);
 
@@ -163,7 +156,8 @@ var ScenePiloting = new Phaser.Class({
             this.input.keyboard.on('keyup', function (event) {
                 switch(event.key){
                     case 't': sendMessage('test','This is the captain speaking.'); break;
-                    case 'm': sendMessage('missile', {offset:0}); break;
+                    //case 'm': sendMessage('missile', {offset:0}); break;
+                    case 'm': this.receiveMessage({type:'missile', content:{offset:0}}); break;
                     case 'e': sendMessage('snakeEats'); break;
                     case 'r': sendMessage('snakeDies'); break;
                     case 'o': sendMessage('commsResult', true); break;
@@ -202,7 +196,6 @@ var ScenePiloting = new Phaser.Class({
         this.explosionEmitter.setLifespan(500);
 
         this.explosionSprite = this.physics.add.sprite(0,0,'red-particle');
-        this.explosionSprite.depth = 5;
         this.explosionSprite.setScale(3);
         this.explosionSprite.setVisible(false);
         this.explosionSprite.debugShowBody = false;
@@ -213,7 +206,18 @@ var ScenePiloting = new Phaser.Class({
         this.missile.setBounce(1);
         this.missile.setCollideWorldBounds(true);
 
-
+        this.missileEngineEmitter = explosionParticles.createEmitter({
+            speed: 750,
+            scale: { start: 0.75, end: 0 },
+            blendMode: 'ADD',
+            lifespan: 250,
+            on: false,
+        });
+        this.missileEngineEmitter.startFollow(this.missile);
+        this.missileEngineEmitter.changeDirection = function (newDirection, spread) {
+            this.angle.start = newDirection-spread;
+            this.angle.end   = newDirection+spread;
+        }; //TODO duplicate code
 
         this.asteroids = this.physics.add.group();
         this.bullets = this.physics.add.group();
@@ -238,11 +242,31 @@ var ScenePiloting = new Phaser.Class({
         this.health = 100;
         this.frienship = 100;
         this.power = 0;
+
+        //Depths
+        this.explosionSprite.depth = 2;
+        this.friendly.setDepth(2);
+
+        this.missile.depth = 4;        
+        this.missileEngineEmitter.depth = 4;
+        
+        this.shipMinusIcon.depth = 5;
+        this.shipPlusIcon.depth = 5;
+        this.asteroidMinusIcon.depth = 5;
+        this.asteroidPlusIcon.depth = 5;
+
+        this.ship.depth = 10;
+
+        this.background.depth = 100; //Only before the game starts
+        this.instrutions.depth = 101;
+
+        this.confusion.depth = 9001;
     },
 
     hitAsteroid: function(bullet, asteroid){
+        if(!bullet.active) return; //Prevents a single bullet from hitting multiple targets
         this.killAsteroid(asteroid);
-        this.bullets.remove(bullet,true, true);
+        this.bullets.remove(bullet, true, true);
     },
 
     killAsteroid: function(asteroid){
@@ -250,6 +274,7 @@ var ScenePiloting = new Phaser.Class({
     },
 
     hitFriendly: function(bullet, target){
+        if(!bullet.active) return;
         this.bullets.remove(bullet, true, true);
         this.killFriendly(target);
     },
@@ -504,9 +529,11 @@ var ScenePiloting = new Phaser.Class({
                     this.killFriendly(killList[i]);
                 }
                 this.missile.body.reset(0,0);
+                this.missileEngineEmitter.on = false;
             } else {
                 //Missile is still in flight
                 this.adjustRotation(this.missile, Math.PI/2);
+                this.missileEngineEmitter.changeDirection(this.missile.angle+90, this.params.MISSILE_EXHAUST_SPREAD);
             }
         } else {
             this.explosionSprite.alpha = 1 + this.effects.missileTimer/1000;
@@ -553,6 +580,8 @@ var ScenePiloting = new Phaser.Class({
                 console.log('Rotation of '+this.ship.rotation+' was changed to '+this.missile.rotation);
                 this.missile.setVisible(true);
                 this.missile.setVelocity(Math.sin(this.missile.rotation)*this.params.MISSILE_SPEED, -Math.cos(this.missile.rotation)*this.params.MISSILE_SPEED);
+
+                this.missileEngineEmitter.on = true;
                 break;
             case 'commsResult':
                 if(data.content){
