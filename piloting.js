@@ -60,7 +60,8 @@ var ScenePiloting = new Phaser.Class({
         MAX_ASTEROIDS: 15,
         ASTEROID_DAMAGE: 10,
         ASTEROID_SPAWN_COOLDOWN: 700,
-        ASTEROID_SPEED: 100,
+        ASTEROID_MIN_SPEED: 20,
+        ASTEROID_MAX_SPEED: 100,
         BASIC_ATTACK_COOLDOWN: 250,
         BULLET_SPEED: 1000,
         BULLET_RECOIL: 10,
@@ -290,6 +291,14 @@ var ScenePiloting = new Phaser.Class({
         this.health -= this.params.ASTEROID_DAMAGE;
     },
 
+    placeAsteroid: function(asteroid, speed){
+        var pos = this.pickPositionsNearEdge(-Math.max(asteroid.width, asteroid.height));
+        var target = {x: Phaser.Math.RND.between(asteroid.width, CANVAS_WIDTH - asteroid.width),
+            y: Phaser.Math.RND.between(asteroid.height, CANVAS_HEIGHT - asteroid.height) };
+        asteroid.body.velocity = this.vec(target.x - pos.x, target.y - pos.y, speed);
+        asteroid.setPosition(pos.x, pos.y);
+    },
+
     spawnFriendlyShip(extra=false){        
         var x,y,dx,dy;
         var side = Math.ceil(Math.random()*4);
@@ -357,7 +366,7 @@ var ScenePiloting = new Phaser.Class({
     },
 
     isOutOfBounds: function(pos,margin){
-         return pos.x<-margin || pos.x>CANVAS_WIDTH+margin || pos.y<-margin || pos.y>CANVAS_HEIGHT+margin;
+         return pos.x < -margin || pos.x > CANVAS_WIDTH+margin || pos.y < -margin || pos.y > CANVAS_HEIGHT+margin;
     },
 
     distanceBetween: function(p1,p2){
@@ -376,6 +385,12 @@ var ScenePiloting = new Phaser.Class({
     distanceFromEdge: function(pos){
         var candidates = [pos.x, pos.y, CANVAS_WIDTH-pos.x, CANVAS_HEIGHT-pos.y];
         return candidates.map(Math.abs).reduce((a,b)=>Math.min(a,b));
+    },
+
+    isFullyOnScreen: function(sprite){
+        var pos = sprite.getCenter(); 
+        return pos.x > sprite.width/2  && pos.x < CANVAS_WIDTH  - sprite.width/2 &&  
+               pos.y > sprite.height/2 && pos.y < CANVAS_HEIGHT - sprite.height/2;
     },
 
     vec: function(x, y, scale){
@@ -435,17 +450,21 @@ var ScenePiloting = new Phaser.Class({
                 else if(this.effects.asteroidAmount < 0) chance = 0.25;
                 
                 if(Math.random() > 1-chance){                
-                    var pos = this.pickPositionsNearEdge(-50);
-                    this.asteroids.add(this.physics.add.sprite(pos.x,pos.y,'meteor-big-'+Math.ceil(Math.random()*4)));
+                    this.asteroids.add(this.physics.add.sprite(0,0,'meteor-big-'+Math.ceil(Math.random()*4)));
                     var newAsteroid = this.asteroids.children.entries[this.asteroids.children.entries.length-1];
                     newAsteroid.setFlip(Math.random()>0.5, Math.random()>0.5);
-                    newAsteroid.setVelocity(Math.random()+0.1, Math.random()+0.1);
-                    newAsteroid.body.velocity.scale(this.params.ASTEROID_SPEED);
+                    this.placeAsteroid(newAsteroid, Phaser.Math.RND.between(this.params.ASTEROID_MIN_SPEED, this.params.ASTEROID_MAX_SPEED));
                     newAsteroid.setBounce(1, 1);
-                    newAsteroid.setCollideWorldBounds(true);
+                    newAsteroid.setCollideWorldBounds(false);
                 }    
             }            
         }
+
+        //Enable collisions for asteroids that are fully on screen
+        this.asteroids.children.entries.filter(a=>!a.body.collideWorldBounds).
+            filter(this.isFullyOnScreen).forEach(a=>a.setCollideWorldBounds(true));
+
+
 
         //Bullets
         if(this.fireKey.isDown && this.laserCooldown <= 0){
@@ -454,7 +473,7 @@ var ScenePiloting = new Phaser.Class({
             var newBullet = this.bullets.children.entries[this.bullets.children.entries.length-1];;
             newBullet.rotation = this.ship.rotation;
             newBullet.setVelocity(this.params.BULLET_SPEED * xDirection, this.params.BULLET_SPEED * yDirection);
-            newBullet.setCircle(newBullet.width/2,0, newBullet.height/2-newBullet.width/2);
+            newBullet.setCircle(newBullet.width/2, 0, newBullet.height/2-newBullet.width/2);
             
             if(!this.cameras.main.shakeEffect.isRunning) this.cameras.main.shakeEffect.start(this.laserCooldown/2,.005,.005);
 
