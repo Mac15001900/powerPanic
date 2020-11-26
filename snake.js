@@ -72,7 +72,7 @@ var SceneSnake = new Phaser.Class({
 
     this.instructionsText = this.add.text(20, 64, '', { font: "16px Arial", fill: "#19de65", wordWrap:{width:CANVAS_WIDTH-40} });
     this.instructionsText.text = 'You are the navigation expert.\n\nYour job is to scan the area around the ship and find regions without asteroids (the green circles). '+
-      "Use the arrow keys to choose the direction in which to scan.\n\n"+
+      "Use the arrow keys or W,A,S,D to choose the direction in which to scan.\n\n"+
       "Sadly the sensor software is a bit buggy and will crash if you scan the same area twice, making the pilot blind for a few seconds. "+
       "Make sure to warn them if that's about to happen!\n\n"+
       "As with all stations, you need to prevent navigation from overloading by using up power. You can do this by holding spacebar to speed up scanning.\n\n"+

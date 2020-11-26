@@ -24,6 +24,7 @@ var ScenePiloting = new Phaser.Class({
         this.load.image('friendly-ship-3', 'assets/ship-green-3.png');
         this.load.image('exhaust-particle', 'assets/blue-particle.png');
         this.load.image('red-particle', 'assets/red-particle.png');
+        this.load.image('ship-particle', 'assets/scratch3.png');
 
         this.load.image('meteor-big-1', 'assets/meteorBrown_big1.png');
         this.load.image('meteor-big-2', 'assets/meteorBrown_big2.png');
@@ -33,9 +34,10 @@ var ScenePiloting = new Phaser.Class({
         this.load.image('meteor-medium-2', 'assets/meteorBrown_med2.png');
         this.load.image('meteor-small-1', 'assets/meteorBrown_small1.png');
         this.load.image('meteor-small-2', 'assets/meteorBrown_small2.png');
+        this.load.image('meteor-tiny-1','assets/meteorBrown_tiny1.png');
 
-        //this.load.image('background', 'assets/black-stars.png');
         this.load.image('stars-background', 'assets/blue-sky.jpg');
+        this.load.image('instructions-background', 'assets/blue-sky-blurred.png');
         this.load.image('laser', 'assets/laserBlue01.png');
         this.load.image('confusion', 'assets/confusion.png');
         this.load.image('missile', 'assets/spaceMissiles_003.png');
@@ -96,26 +98,25 @@ var ScenePiloting = new Phaser.Class({
     },
 
     create: function () {
-        this.background = this.add.image(0, 0, 'stars-background').setOrigin(0).setScale(1.6);
+        this.background = this.add.image(-10, -10, 'stars-background').setOrigin(0).setScale(1.6);
+        this.instrutionsBackground = this.add.image(-10, -10, 'instructions-background').setOrigin(0).setScale(1.6);
 
         /*this.background1 = this.add.image(0, 0, 'stars-background').setOrigin(0);
         this.background2 = this.add.image(512, 0, 'stars-background').setOrigin(0);
         this.background3 = this.add.image(0, 512, 'stars-background').setOrigin(0);
         this.background4 = this.add.image(512, 512, 'stars-background').setOrigin(0);*/
 
-        this.confusion = this.add.image(0, 0, 'confusion').setOrigin(0);
+        this.confusion = this.add.image(-10, -10, 'confusion').setOrigin(0).setScale(1.1);
         this.confusion.setVisible(false);
 
-        this.instrutions = this.add.text(20, 64, '', { font: "24px Arial", fill: "#19de65" });
+        this.instrutions = this.add.text(20, 64, '', { font: "16px Arial", fill: "#19de65", wordWrap:{width:CANVAS_WIDTH-40} });
 
-        this.instrutions.text = "You are in the pilots seat\n"
-            + "Your job is to pilot the ship, making sure it survives and doesn't cause\ntoo many casualties.\n"
-            + "You can move with W,A,S,D and shoot with Spacebar\n"
-            + "Using your thrusters also gets rid of power.\n"
-            + "Your teammates' actions will affect your situation, make sure you\ncommunicate with them!\n"
-            + "When your teammates are ready, press Spacebar to start the game\n\n"
-            + "Good luck.";
-            //+ "\n"
+        this.instrutions.text = "You are the pilot\n\n"
+            + "Your job is to pilot the ship, making sure it survives while avoiding civilian casualties.\n\n"
+            + "You can fire the thrusters with W, rotate with A and D, and shoot projectiles with Spacebar.\n\n"
+            + "Avoid getting hit by asteroids, shooting down other ships, and of course a power overload - you can get rid of power by using your thrusters.\n\n"
+            + "Your teammates' actions will affect your situation, make sure to communicate with them!\n\n"
+            + "\nWhen everyone is ready press Spacebar to start the game."
 
         var createKey =  function(scene, key){
                 return scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes[key]);
@@ -140,7 +141,10 @@ var ScenePiloting = new Phaser.Class({
         this.shipPlusIcon.setVisible(false);
         this.asteroidMinusIcon.setVisible(false);
         this.asteroidPlusIcon.setVisible(false);
-
+        this.shipMinusIcon.alpha = 0.9;
+        this.shipPlusIcon.alpha = 0.9;
+        this.asteroidMinusIcon.alpha = 0.9;
+        this.asteroidPlusIcon.alpha = 0.9;
 
         this.ship = this.physics.add.sprite(CANVAS_HEIGHT/2,CANVAS_WIDTH/2,'ship');
         this.ship.body.angularDrag = 0;
@@ -192,9 +196,10 @@ var ScenePiloting = new Phaser.Class({
             speed: 500,
             scale: { start: 1, end: 0 },
             blendMode: 'ADD',
+            lifespan: 500,
         });
         this.explosionEmitter.setFrequency(-1,250);
-        this.explosionEmitter.setLifespan(500);
+        //this.explosionEmitter.setLifespan(500);
 
         this.explosionSprite = this.physics.add.sprite(0,0,'red-particle');
         this.explosionSprite.setScale(3);
@@ -219,6 +224,35 @@ var ScenePiloting = new Phaser.Class({
             this.angle.start = newDirection-spread;
             this.angle.end   = newDirection+spread;
         }; //TODO duplicate code
+
+        this.asteroidEmitter = this.add.particles('meteor-tiny-1').createEmitter({
+            speed: {min: 50, max: 300},
+            scale: {start:2, end:0.5},
+            blendMode: 'NORMAL', 
+            lifespan: {min:400, max:600},
+        });
+        this.asteroidEmitter.setFrequency(-1,25);
+
+        this.friendlyEmitter = this.add.particles('ship-particle').createEmitter({
+            speed: {min: 50, max: 300},
+            scale: {start:1.5, end:0.1},
+            blendMode: 'NORMAL', 
+            lifespan: {min:400, max:600},
+            rotate: {min:0, max: 360},
+            tint: {min: 0xffffff, max: 0x00ff00},
+        });
+        this.friendlyEmitter.setFrequency(-1,40);
+        this.friendlyEmitter.onParticleEmit(function(particle){
+            var tints = [0x4a3c55, //Cockpit
+                0x71c937, //Green
+                0xf2f2f2, //White
+                0xffcc00, //Yellow
+            ];
+            var tint = tints[Math.floor(Math.random()*4)];
+            particle.data.tint.min = tint;
+            particle.data.tint.max = tint;
+
+        }, this);
 
         this.asteroids = this.physics.add.group();
         this.bullets = this.physics.add.group();
@@ -245,6 +279,8 @@ var ScenePiloting = new Phaser.Class({
         this.power = 0;
 
         //Depths
+        this.background.depth = -10;
+
         this.explosionSprite.depth = 2;
         this.friendly.setDepth(2);
 
@@ -258,7 +294,7 @@ var ScenePiloting = new Phaser.Class({
 
         this.ship.depth = 10;
 
-        this.background.depth = 100; //Only before the game starts
+        this.instrutionsBackground.depth = 100;
         this.instrutions.depth = 101;
 
         this.confusion.depth = 9001;
@@ -266,11 +302,14 @@ var ScenePiloting = new Phaser.Class({
 
     hitAsteroid: function(bullet, asteroid){
         if(!bullet.active) return; //Prevents a single bullet from hitting multiple targets
+
         this.killAsteroid(asteroid);
         this.bullets.remove(bullet, true, true);
     },
 
     killAsteroid: function(asteroid){
+        this.asteroidEmitter.setPosition(asteroid.x, asteroid.y);
+        this.asteroidEmitter.explode();
         this.asteroids.remove(asteroid,true, true);
     },
 
@@ -283,12 +322,18 @@ var ScenePiloting = new Phaser.Class({
     killFriendly: function(target){
         console.log('Friendy ship killed :(');
         this.frienship -= 10;
+        this.friendlyEmitter.setPosition(target.x, target.y);
+        this.friendlyEmitter.explode();
         this.friendly.remove(target, true, true);
     },
 
     hitShip: function(ship, asteroid){
         this.killAsteroid(asteroid);
         this.health -= this.params.ASTEROID_DAMAGE;
+        var shake = this.cameras.main.shakeEffect;
+        if(!shake.isRunning || shake.intensity.x < 0.015){
+            shake.start(400,.012,.012);
+        }
     },
 
     placeAsteroid: function(asteroid, speed){
@@ -365,11 +410,11 @@ var ScenePiloting = new Phaser.Class({
         return {x: x, y: y};
     },
 
-    isOutOfBounds: function(pos,margin){
+    isOutOfBounds: function(pos, margin){
          return pos.x < -margin || pos.x > CANVAS_WIDTH+margin || pos.y < -margin || pos.y > CANVAS_HEIGHT+margin;
     },
 
-    distanceBetween: function(p1,p2){
+    distanceBetween: function(p1, p2){
         return Math.sqrt(Math.pow(p1.x-p2.x,2) + Math.pow(p1.y-p2.y,2));
     },
 
@@ -412,7 +457,7 @@ var ScenePiloting = new Phaser.Class({
         }
 
         this.instrutions.setVisible(false);
-        this.background.depth = -10;
+        this.instrutionsBackground.setVisible(false);
 
 
         //Ship movement
