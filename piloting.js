@@ -243,12 +243,13 @@ var ScenePiloting = new Phaser.Class({
         });
         this.friendlyEmitter.setFrequency(-1,40);
         this.friendlyEmitter.onParticleEmit(function(particle){
-            var tints = [0x4a3c55, //Cockpit
-                0x71c937, //Green
-                0xf2f2f2, //White
+            var tints = [
+                0x4a3c55, //Grey (cockpit)
+                0x71c937, 0x71c937, //Green
+                0xf2f2f2, 0xf2f2f2, //White
                 0xffcc00, //Yellow
             ];
-            var tint = tints[Math.floor(Math.random()*4)];
+            var tint = tints[Math.floor(Math.random()*6)];
             particle.data.tint.min = tint;
             particle.data.tint.max = tint;
 
