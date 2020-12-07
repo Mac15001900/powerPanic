@@ -1,4 +1,5 @@
 var tempDebugConfigUntilIFigureOutHowToSynchronouslyLoadJSON = {
+	"allow_debug" : true, //Setting this to false will disable all other debug options
 	"ignore_taken_stations" : false,
 	"show_hitboxes" : false,
 	"use_dev_server" : false,

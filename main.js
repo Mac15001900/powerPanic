@@ -14,6 +14,11 @@ var g = {
     debug: tempDebugConfigUntilIFigureOutHowToSynchronouslyLoadJSON,
 };
 
+//Handle high-level debug options
+if(!g.debug.allow_debug){
+    Object.entries(g.debug).forEach(entry=>g.debug[entry[0]]=false);
+}
+
 var SceneStart = new Phaser.Class({
 
     Extends: Phaser.Scene,
