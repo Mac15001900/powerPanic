@@ -177,7 +177,7 @@ var SceneComms = new Phaser.Class({
             console.log('Switching back to menu');
             switchToScene(this,'SceneStart');
         }
-        if(gameStatus !== GS.GAME_STARTED && !DEBUG_IGNORE_GAME_STATE) return;
+        if(gameStatus !== GS.GAME_STARTED && !g.debug.ignore_game_state) return;
 
         this.instructionsBackground.setVisible(false);
         this.instructionsText.setVisible(false);

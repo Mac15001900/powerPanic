@@ -279,7 +279,7 @@ var SceneSnake = new Phaser.Class({
   },
 
   update: function (timestep, dt) {
-    if(gameStatus !== GS.GAME_STARTED && !DEBUG_IGNORE_GAME_STATE){
+    if(gameStatus !== GS.GAME_STARTED && !g.debug.ignore_game_state){
       if(this.backKey.isDown){
         console.log('Switching back to menu');
         switchToScene(this,'SceneStart');

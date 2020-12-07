@@ -157,7 +157,7 @@ var ScenePiloting = new Phaser.Class({
         this.ship.setScale(0.5);
         this.ship.setSize(this.ship.width/2,this.ship.height/2);
 
-        if(DEBUG_PILOT_PACKET_SENDING){
+        if(g.debug.pilot_packet_sending){
             this.input.keyboard.on('keyup', function (event) {
                 switch(event.key){
                     case 't': sendMessage('test','This is the captain speaking.'); break;
@@ -449,7 +449,7 @@ var ScenePiloting = new Phaser.Class({
             console.log('Switching back to menu');
             switchToScene(this,'SceneStart');
         }
-        if(gameStatus !== GS.GAME_STARTED && !DEBUG_IGNORE_GAME_STATE) {
+        if(gameStatus !== GS.GAME_STARTED && !g.debug.ignore_game_state) {
             if(this.fireKey.isDown && gameStatus === GS.CONNECTED){
                 sendMessage('startGame',{});
                 gameStatus === GS.GAME_STARTED;
@@ -606,7 +606,7 @@ var ScenePiloting = new Phaser.Class({
 
         //Stats and death
         this.power += this.params.POWER_GAIN*dt/1000;
-        if(!DEBUG_IMMORTAL){
+        if(!g.debug.immortal){
             if(this.power > 100) this.endGame('Engines exploded');
             if(this.health <= 0) this.endGame('The ship got destroyed by an asteroid');
             if(this.frienship <= 0) this.endGame('You killed too many civilians.');

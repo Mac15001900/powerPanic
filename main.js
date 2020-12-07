@@ -1,16 +1,17 @@
-const DEBUG_IGNORE_TAKEN_STATIONS = false;
-const DEBUG_SHOW_HITBOXES = false;
-const DEBUG_USE_DEV_SERVER = false;
-const DEBUG_USE_RANDOM_SERVER = false;
-const DEBUG_RANDOMISE_USERNAME = false;
-const DEBUG_IGNORE_GAME_STATE = false;
-const DEBUG_IMMORTAL = false;
-const DEBUG_PILOT_PACKET_SENDING = false;
-const DEBUG_DISABLE_MESSAGES = false;
+/*const g.debug.ignore_taken_stations = false;
+const g.debug.show_hitboxes = false;
+const g.debug.use_dev_server = false;
+const g.debug.use_random_server = false;
+const g.debug.randomise_username = false;
+const g.debug.ignore_game_state = false;
+const g.debug.immortal = false;
+const g.debug.pilot_packet_sending = false;
+const g.debug.disable_messages = false;*/
 
 //The one global variable to rule them all; put everything that should be accessible globally here
 var g = {
     stationList : ["SceneNavigation", "SceneWeapons", "ScenePiloting", "SceneShields", "SceneSnake", "SceneComms"],
+    debug: tempDebugConfigUntilIFigureOutHowToSynchronouslyLoadJSON,
 };
 
 var SceneStart = new Phaser.Class({
@@ -21,7 +22,6 @@ var SceneStart = new Phaser.Class({
 
     function SceneStart() {
         Phaser.Scene.call(this, { key: 'SceneStart' });
-        this.station = ['WEAPONS','NAVIGATION','PILOT','SHIELD'];
         this.testText;
         this.keyW;
         this.keyN;
@@ -39,10 +39,14 @@ var SceneStart = new Phaser.Class({
         this.load.image('icon-shields', 'assets/icon-shield.png');
         this.load.image('icon-comms', 'assets/satellite-communication.png');
         this.load.image('square', 'assets/square.png');
+
+        //this.load.json('debug-config', 'debugConfig.json');
         console.log(game);
     },
 
     create: function() {
+        //g.debug = this.cache.json.get('debug-config');
+
         this.testText = this.add.text(32, 32, '', { font: "16px Arial", fill: "#19de65" });
         this.testText.text = 'Select a station using the following keys:\n W for weapons\nN for navigation\nC for communication\nP for pilot (required).'; //TODO Add lore and good instructions here
 
@@ -127,7 +131,7 @@ var SceneStart = new Phaser.Class({
 var takenStations = {};
 function switchToScene(currentScene, targetScene, freeCurrent=true) {
     var currentKey = currentScene.scene.key;
-    if(takenStations[targetScene] && targetScene !== 'SceneStart' && !DEBUG_IGNORE_TAKEN_STATIONS){
+    if(takenStations[targetScene] && targetScene !== 'SceneStart' && !g.debug.ignore_taken_stations){
         console.error('Tried to switch to a taken station '+targetScene);
         //alert('That station is taken');
         return false;
@@ -177,7 +181,7 @@ var config = {
         physics: {
             default: 'arcade',
             arcade: {
-                debug: DEBUG_SHOW_HITBOXES,
+                debug: g.debug.show_hitboxes,
             }
         },
         scene:  [SceneStart, SceneNavigation, SceneWeapons, ScenePiloting, SceneShields, SceneSnake, SceneComms],
@@ -193,7 +197,7 @@ var members;
 var roomName = getRoom();
 
 function getUsername() {
-    if(DEBUG_RANDOMISE_USERNAME) return getRandomName();
+    if(g.debug.randomise_username) return getRandomName();
     var name;
     name = prompt("Enter your username","");
       
@@ -212,8 +216,8 @@ function getRandomName() {
 }
 
 function getRoom() {
-    if(DEBUG_USE_DEV_SERVER) return ROOM_NAME_BASE+'dev';
-    if(DEBUG_USE_RANDOM_SERVER) return ROOM_NAME_BASE+'random-'+Math.random();
+    if(g.debug.use_dev_server) return ROOM_NAME_BASE+'dev';
+    if(g.debug.use_random_server) return ROOM_NAME_BASE+'random-'+Math.random();
 
     var room;
     room = prompt("Enter the room name to join or create a room.","");
@@ -231,7 +235,7 @@ const drone = new ScaleDrone(CHANNEL_ID, {
 });
 
 function sendMessage(type, content) {
-    if(DEBUG_DISABLE_MESSAGES) return;
+    if(g.debug.disable_messages) return;
   drone.publish({
     room: roomName,
     message: {
@@ -307,7 +311,7 @@ drone.on('open', error => {
                     //if(!takenStations.includes(data.content)) takenStations.push(data.content);
                     if(data.content === 'SceneStart') console.error.log(serverMember.clientData.name + ' just reserved the main menu...');
                     var currentScene = getActiveScene();
-                    if(currentScene.scene.key === data.content && serverMember.id != drone.clientId  && !DEBUG_IGNORE_TAKEN_STATIONS){
+                    if(currentScene.scene.key === data.content && serverMember.id != drone.clientId  && !g.debug.ignore_taken_stations){
                         //Someone else joined our scene
                         switchToScene(currentScene,'SceneStart');
                         sendMessage('stationJammed', data.content);
@@ -317,7 +321,7 @@ drone.on('open', error => {
                     break;
                 case 'stationJammed': //For whatever reason, there are multiple people on the same station. Recover by having them all leave.
                     console.error.log('Scene jam at '+data.content)
-                    if(getActiveScene().scene.key === data.content && !DEBUG_IGNORE_TAKEN_STATIONS) switchToScene(currentScene,'SceneStart');
+                    if(getActiveScene().scene.key === data.content && !g.debug.ignore_taken_stations) switchToScene(currentScene,'SceneStart');
                     takenStations[data.content] = null;
                     break;
                 case 'welcome': //Sent whenever a new player joins
