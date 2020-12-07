@@ -8,6 +8,11 @@ const DEBUG_IMMORTAL = false;
 const DEBUG_PILOT_PACKET_SENDING = false;
 const DEBUG_DISABLE_MESSAGES = false;
 
+//The one global variable to rule them all; put everything that should be accessible globally here
+var g = {
+    stationList : ["SceneNavigation", "SceneWeapons", "ScenePiloting", "SceneShields", "SceneSnake", "SceneComms"],
+};
+
 var SceneStart = new Phaser.Class({
 
     Extends: Phaser.Scene,
@@ -16,9 +21,8 @@ var SceneStart = new Phaser.Class({
 
     function SceneStart() {
         Phaser.Scene.call(this, { key: 'SceneStart' });
-        this.currentStation = 'WEAPONS';
         this.station = ['WEAPONS','NAVIGATION','PILOT','SHIELD'];
-        this.text;
+        this.testText;
         this.keyW;
         this.keyN;
         this.keyP;
@@ -36,12 +40,11 @@ var SceneStart = new Phaser.Class({
         this.load.image('icon-comms', 'assets/satellite-communication.png');
         this.load.image('square', 'assets/square.png');
         console.log(game);
-        console.log(this.currentStation);
     },
 
     create: function() {
-        text = this.add.text(32, 32, '', { font: "16px Arial", fill: "#19de65" });
-        text.text = 'Select a station using the following keys:\n W for weapons\nN for navigation\nC for communication\nP for pilot (required).'; //TODO Add lore and good instructions here
+        this.testText = this.add.text(32, 32, '', { font: "16px Arial", fill: "#19de65" });
+        this.testText.text = 'Select a station using the following keys:\n W for weapons\nN for navigation\nC for communication\nP for pilot (required).'; //TODO Add lore and good instructions here
 
         this.add.image(400, 300, 'sky');
 
@@ -88,12 +91,29 @@ var SceneStart = new Phaser.Class({
 
     update: function(timestep, dt) {
         //Note: those have to be here, otherwise they don't see this.scene properly
+        if(gameStatus === GS.NOT_CONNECTED) return; //Don't switch until there's a connection
         if(this.keyW.isDown) switchToScene(this,'SceneWeapons');
         if(this.keyN.isDown) switchToScene(this,'SceneSnake');
         if(this.keyP.isDown) switchToScene(this,'ScenePiloting');
         if(this.keyS.isDown) switchToScene(this,'SceneShields');
         if(this.keyA.isDown) switchToScene(this,'SceneSnake');
         if(this.keyC.isDown) switchToScene(this,'SceneComms');
+
+        this.testText.text = "";
+        var sceneList = g.stationList;
+        for (var i = 0; i < sceneList.length; i++) {
+            if(takenStations[sceneList[i]]) {
+                var operator = members.filter(m=>m.id===takenStations[sceneList[i]])[0];
+                if(operator) this.testText.text += sceneList[i] + ': '+operator.clientData.name+'\n';
+                else this.testText.text += sceneList[i] + ': ????\n';
+
+            }
+        }
+
+        /*.forEach(function(name){
+            if(takenStations[name]) console.log('Name: '+members.filter(m=>m.id===takenStations[name])[0]+'\n');
+            //this.text += 'Name: '+members.filter(m=>m.id===takenStations[name])[0]+'\n';
+        });*/
     },
 
     receiveMessage: function (){},
@@ -102,22 +122,28 @@ var SceneStart = new Phaser.Class({
 
 });
 
-function switchToScene(currentScene, targetScene) {
+//Station switching
+
+var takenStations = {};
+function switchToScene(currentScene, targetScene, freeCurrent=true) {
     var currentKey = currentScene.scene.key;
-    if(takenStations.includes(targetScene) && targetScene !== 'SceneStart' && !DEBUG_IGNORE_TAKEN_STATIONS){
+    if(takenStations[targetScene] && targetScene !== 'SceneStart' && !DEBUG_IGNORE_TAKEN_STATIONS){
         console.error('Tried to switch to a taken station '+targetScene);
         //alert('That station is taken');
         return false;
     }
 
-    if(currentScene.scene.key !== 'SceneStart'){
-        var index = takenStations.indexOf(currentKey);
-        if(index !== -1) takenStations.splice(index,1);
-        else console.error('Leaving station that was already free '+currentKey);
-        sendMessage('stationLeft', currentKey);    
+    if(g.stationList.includes(currentScene.scene.key) && freeCurrent){
+        takenStations[currentKey] = null;        
+        sendMessage('stationLeft', currentKey);
     }
     
-    if(targetScene !== 'SceneStart') sendMessage('stationTaken', targetScene);
+    if(g.stationList.includes(targetScene)){
+        sendMessage('stationTaken', targetScene);
+        console.log('Taking over '+targetScene);
+        takenStations[currentKey] = drone.clientId;
+    }
+    
     currentScene.scene.start(targetScene);
 }
 
@@ -164,7 +190,6 @@ var game = new Phaser.Game(config);
 const ROOM_NAME_BASE = 'observable-main-';
 const CHANNEL_ID = 'zb4mnOSMgmoONGoM';
 var members;
-var takenStations = [];
 var roomName = getRoom();
 
 function getUsername() {
@@ -258,7 +283,12 @@ drone.on('open', error => {
     // User left the room
     room.on('member_leave', ({id}) => {    
         const index = members.findIndex(member => member.id === id);
+        console.log(members[index].clientData.name+' left');
+        for (var i = 0; i < g.stationList.length; i++) {
+            if(takenStations[g.stationList[i]]===id) takenStations[g.stationList[i]] = null;
+        }
         members.splice(index, 1);
+        
         //TODO Update member display?
     });
 
@@ -270,12 +300,25 @@ drone.on('open', error => {
             switch(data.type){
                 case 'test': alert(serverMember.clientData.name+' sends a test message: '+data.content); break;
                 case 'stationLeft': //Sent whenever someone leaves a station
-                    if(takenStations.includes(data.content)) takenStations.splice(takenStations.indexOf(data.content),1);
+                    takenStations[data.content] = null;
                     console.log(serverMember.clientData.name + ' leaves '+data.content);
                     break;
                 case 'stationTaken': //Sent whenever someone takes over a station
-                    if(!takenStations.includes(data.content)) takenStations.push(data.content);
+                    //if(!takenStations.includes(data.content)) takenStations.push(data.content);
+                    if(data.content === 'SceneStart') console.error.log(serverMember.clientData.name + ' just reserved the main menu...');
+                    var currentScene = getActiveScene();
+                    if(currentScene.scene.key === data.content && serverMember.id != drone.clientId  && !DEBUG_IGNORE_TAKEN_STATIONS){
+                        //Someone else joined our scene
+                        switchToScene(currentScene,'SceneStart');
+                        sendMessage('stationJammed', data.content);
+                    }
+                    takenStations[data.content] = serverMember.id;
                     console.log(serverMember.clientData.name + ' takes over '+data.content);
+                    break;
+                case 'stationJammed': //For whatever reason, there are multiple people on the same station. Recover by having them all leave.
+                    console.error.log('Scene jam at '+data.content)
+                    if(getActiveScene().scene.key === data.content && !DEBUG_IGNORE_TAKEN_STATIONS) switchToScene(currentScene,'SceneStart');
+                    takenStations[data.content] = null;
                     break;
                 case 'welcome': //Sent whenever a new player joins
                     if(gameStatus===GS.NOT_CONNECTED){
@@ -293,8 +336,6 @@ drone.on('open', error => {
                     gameStatus = GS.CONNECTED;                    
                     alert('Game over\n'+data.content);
                     break;
-                default: console.log('Unknown message type received: '+data.type)
-
             }            
         } else {
             console.log('Server: '+data.content); 
