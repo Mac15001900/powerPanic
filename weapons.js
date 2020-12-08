@@ -12,7 +12,7 @@ var SceneWeapons = new Phaser.Class({
 
     preload: function () {
         console.log('Preload in weapons');
-        this.load.image('weapons-icon', 'assets/icon-laser.png');  
+        this.load.image('weapons-icon', 'assets/icon-weapons.png');  
         this.load.image('power-icon', 'assets/powerupBlue_bolt.png');
 
         this.load.image('missile-top', 'assets/missile-top.png');   
@@ -50,8 +50,6 @@ var SceneWeapons = new Phaser.Class({
         this.powerBar = this.add.graphics();
 
         this.icon = this.add.image(32,32,'weapons-icon');
-        this.icon.scaleX = 1/8;
-        this.icon.scaleY = 1/8;
 
         this.backKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
         this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);

@@ -12,14 +12,14 @@ const DIMS = {
 }
 
 
-var SceneSnake = new Phaser.Class({
+var SceneNavigation = new Phaser.Class({
 
   Extends: Phaser.Scene,
 
   initialize:
 
-  function SceneSnake () {
-    Phaser.Scene.call(this, { key: 'SceneSnake' });
+  function SceneNavigation () {
+    Phaser.Scene.call(this, { key: 'SceneNavigation' });
     this.icon;
     this.backKey;
     this.speedKey;
@@ -81,8 +81,6 @@ var SceneSnake = new Phaser.Class({
 
 
     this.icon = this.add.image(32,32,'snake-icon');
-    this.icon.scaleX = 1 / 8;
-    this.icon.scaleY = 1 / 8;
     this.backKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     this.speedKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -279,11 +277,10 @@ var SceneSnake = new Phaser.Class({
   },
 
   update: function (timestep, dt) {
-    if(gameStatus !== GS.GAME_STARTED && !g.debug.ignore_game_state){
-      if(this.backKey.isDown){
-        console.log('Switching back to menu');
+    if(this.backKey.isDown){
         switchToScene(this,'SceneStart');
       }
+    if(gameStatus !== GS.GAME_STARTED && !g.debug.ignore_game_state){
       return;
     } else {
       this.instructionsText.setVisible(false);

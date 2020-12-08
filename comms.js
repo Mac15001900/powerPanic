@@ -12,7 +12,8 @@ var SceneComms = new Phaser.Class({
 	},
 
 	preload: function() {
-		this.load.image('icon-comms', 'assets/satellite-communication.png');
+		//this.load.image('icon-comms', 'assets/icon-communication.png');
+        this.load.image('icon-comms', 'assets/button-communication.png');
 		this.load.image('square', 'assets/square.png');
         this.load.image('power-icon', 'assets/powerupBlue_bolt.png');
 	},
@@ -95,8 +96,6 @@ var SceneComms = new Phaser.Class({
             });
         }
         this.icon = this.add.image(32,32,'icon-comms');
-        this.icon.scaleX = 1/8;
-        this.icon.scaleY = 1/8;
         this.backKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
 
 

@@ -123,8 +123,6 @@ var ScenePiloting = new Phaser.Class({
             };
 
         this.icon = this.add.image(32,32,'pilot-icon');
-        this.icon.scaleX = 1/8;
-        this.icon.scaleY = 1/8;
         this.backKey = createKey(this,'ESC');
         this.forwardKey = createKey(this,'W');
         this.backwardsKey = createKey(this,'S');
