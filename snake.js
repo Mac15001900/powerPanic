@@ -31,7 +31,6 @@ var SceneNavigation = new Phaser.Class({
 
   preload: function () {
     console.log('Preload in snake');
-    this.load.image('background', 'assets/deep-space.jpg');
     this.load.image('snake-icon', 'assets/icon-navigation.png');
     this.load.image('foodBlue', 'assets/blue-particle.png');
     this.load.image('foodGreen', 'assets/green-orb.png');
@@ -39,6 +38,9 @@ var SceneNavigation = new Phaser.Class({
     this.load.image('star-particle', 'assets/snake_speed.png');
     this.load.image('power-icon', 'assets/powerupBlue_bolt.png');
     this.load.image('speed-button', 'assets/speedometer-greener.png');
+
+    this.load.image('deep-space-background', 'assets/deep-space.jpg');
+    this.load.image('icon-back', 'assets/icon-back.png');
   },
 
   create: function () {
@@ -46,7 +48,7 @@ var SceneNavigation = new Phaser.Class({
     powerIcon.depth = 5;
     this.powerBar = this.add.graphics();
     // 512 x 512
-    var background = this.add.image(64, 64, 'background').setOrigin(0);
+    var background = this.add.image(64, 64, 'deep-space-background').setOrigin(0);
     background.setSize(672, 472);
     background.setDisplaySize(672, 472);
     background.depth = -10;
@@ -66,18 +68,20 @@ var SceneNavigation = new Phaser.Class({
     this.speedButton.alpha = 0.75;
 
     //Instructions
-    this.instructionsBackground = this.add.image(0,0, 'background').setOrigin(0);
+    /*this.instructionsBackground = this.add.image(0,0, 'deep-space-background').setOrigin(0);
     this.instructionsBackground.setScale(2);
     this.instructionsBackground.depth = 9001;
 
-    this.instructionsText = this.add.text(20, 64, '', { font: "16px Arial", fill: "#19de65", wordWrap:{width:CANVAS_WIDTH-40} });
-    this.instructionsText.text = 'You are the navigation expert.\n\nYour job is to scan the area around the ship and find regions without asteroids (the green circles). '+
+    this.instructionsText = this.add.text(20, 64, '', { font: "16px Arial", fill: "#19de65", wordWrap:{width:CANVAS_WIDTH-40} });*/
+    
+    var instructionsText = 'You are the navigation expert.\n\nYour job is to scan the area around the ship and find regions without asteroids (the green circles). '+
       "Use the arrow keys or W,A,S,D to choose the direction in which to scan.\n\n"+
       "Sadly the sensor software is a bit buggy and will crash if you scan the same area twice, making the pilot blind for a few seconds. "+
       "Make sure to warn them if that's about to happen!\n\n"+
       "As with all stations, you need to prevent navigation from overloading by using up power. You can do this by holding spacebar to speed up scanning.\n\n"+
       "\nWaiting for the pilot to start the game...";
-    this.instructionsText.depth = 9002;
+    
+    this.instructionScreen = new InstructionScreen(this, instructionsText, 'deep-space-background', 'icon-back', 9000, 1.6);
 
 
     this.icon = this.add.image(32,32,'snake-icon');

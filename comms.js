@@ -16,24 +16,29 @@ var SceneComms = new Phaser.Class({
         this.load.image('icon-comms', 'assets/button-communication.png');
 		this.load.image('square', 'assets/square.png');
         this.load.image('power-icon', 'assets/powerupBlue_bolt.png');
+
+        this.load.image('black-stars-background', 'assets/black-stars.png');
+        this.load.image('icon-back', 'assets/icon-back.png');
 	},
 
     create: function () {
 
         //Instructions
-        this.instructionsBackground = this.add.graphics();
+        /*this.instructionsBackground = this.add.graphics();
         this.instructionsBackground.depth = 9001;
         this.instructionsBackground.fillStyle(0x000000, 1);
-        this.instructionsBackground.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        this.instructionsBackground.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);*/
 
-        this.instructionsText = this.add.text(20, 64, '', { font: "16px Arial", fill: "#19de65", wordWrap:{width:CANVAS_WIDTH-40} });
-        this.instructionsText.text = "You are the comms specialist.\n\n" +
+        //this.instructionsText = this.add.text(20, 64, '', { font: "16px Arial", fill: "#19de65", wordWrap:{width:CANVAS_WIDTH-40} });
+        var instructionsText = "You are the comms specialist.\n\n" +
             "Your job is to send messages to civilian ships tellling them to stay away. Unofrtunely, the translator system is somewhat broken now, and will need some help.\n\n"+
             "Mouse over letters to see which of them are part of the message - those that are will light up green. Click on all of them and send a message make all civian ships fly away.\n\n"+
             "If you transcribe the message incorrectly ships might be confused, and will come to check if you're ok.\n\n" +
             "Broadcasting messages uses up power. If you're close to an overload, you might need to send empty ones.\n\n" +
           "\nWaiting for the pilot to start the game...";
-        this.instructionsText.depth = 9002;
+        //this.instructionsText.depth = 9002;
+
+        this.instructionScreen = new InstructionScreen(this, instructionsText, 'black-stars-background', 'icon-back', 9000, 4);
 
         //this.womp = this.add.text(50,100, 'Comms needs your help! \nTranslate the messages correctly to clear the civilian ships. \n Hover over each character and find the green characters to spell the message', { font: "20px Arial", fill: "#19de65" });
         this.pomp = this.add.text(50,200, '', { font: "20px Arial", fill: "#19de65" });
@@ -178,8 +183,7 @@ var SceneComms = new Phaser.Class({
         }
         if(gameStatus !== GS.GAME_STARTED && !g.debug.ignore_game_state) return;
 
-        this.instructionsBackground.setVisible(false);
-        this.instructionsText.setVisible(false);
+        this.instructionScreen.hide();
 
         power += 2*dt/1000;
         this.powerBar.clear();

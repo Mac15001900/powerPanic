@@ -22,23 +22,27 @@ var SceneWeapons = new Phaser.Class({
 
         this.load.image('red-particle', 'assets/red-particle.png');  
         
-        this.load.image('background', 'assets/black-stars.png');   
+        this.load.image('black-stars-background', 'assets/black-stars.png');
+        this.load.image('icon-back', 'assets/icon-back.png');
     },
 
     create: function () {
 
-        this.background = this.add.image(0, 0, 'background').setOrigin(0).setScale(4);
-        this.background.depth = 100;
+        this.background = this.add.image(0, 0, 'black-stars-background').setOrigin(0).setScale(4);
+        //this.background.depth = 100;
+        this.background.depth = -10;
 
-        this.instrutions = this.add.text(40, 64, '', { font: "16px Arial", fill: "#19de65", wordWrap:{width:CANVAS_WIDTH-40} });
-        this.instrutions.depth = 101;        
+        /*this.instrutions = this.add.text(40, 64, '', { font: "16px Arial", fill: "#19de65", wordWrap:{width:CANVAS_WIDTH-40} });
+        this.instrutions.depth = 101;  */      
 
-        this.instrutions.text = "You are the weapons expert.\n\nYour job is to build and fire missiles, using up a lot of energy. " +
+        var instrutionsText = "You are the weapons expert.\n\nYour job is to build and fire missiles, using up a lot of energy. " +
             "Drop down pieces with spacebar or by touching/clicking the screen. Stack 4 pieces to create a missile.\n\n" +
             "Missiles are fired immidiately after being built. Warn your pilot before you do that - or you'll risk a lot of civilian casualties. "+
             "If your missile is skewed to the side, it will skew in that direction when fired - also warn the pilot about that!\n\n"+
             "As with any station, make sure the power bar never overloads (firing missiles decreases it).\n\n" +
             "\nWaiting for the pilot to start the game...";
+
+        this.instrutions = new InstructionScreen(this, instrutionsText, 'black-stars-background', 'icon-back', 100, 4);
 
         this.isPlaying = false;
 
@@ -99,8 +103,9 @@ var SceneWeapons = new Phaser.Class({
             switchToScene(this,'SceneStart');
         }
         if(gameStatus !== GS.GAME_STARTED && !g.debug.ignore_game_state) return;
-        this.instrutions.setVisible(false);
-        this.background.depth = -10;
+        //this.instrutions.setVisible(false);
+        //this.background.depth = -10;
+        this.instrutions.hide();
 
         power += this.powerGain*dt/1000;
         this.powerBar.clear();

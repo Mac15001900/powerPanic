@@ -30,14 +30,13 @@ var ScenePiloting = new Phaser.Class({
         this.load.image('meteor-big-2', 'assets/meteorBrown_big2.png');
         this.load.image('meteor-big-3', 'assets/meteorBrown_big3.png');
         this.load.image('meteor-big-4', 'assets/meteorBrown_big4.png');
-        this.load.image('meteor-medium-1', 'assets/meteorBrown_med1.png');
-        this.load.image('meteor-medium-2', 'assets/meteorBrown_med2.png');
-        this.load.image('meteor-small-1', 'assets/meteorBrown_small1.png');
-        this.load.image('meteor-small-2', 'assets/meteorBrown_small2.png');
+        //this.load.image('meteor-medium-1', 'assets/meteorBrown_med1.png');
+        //this.load.image('meteor-medium-2', 'assets/meteorBrown_med2.png');
+        //this.load.image('meteor-small-1', 'assets/meteorBrown_small1.png');
+        //this.load.image('meteor-small-2', 'assets/meteorBrown_small2.png');
         this.load.image('meteor-tiny-1','assets/meteorBrown_tiny1.png');
 
         this.load.image('stars-background', 'assets/blue-sky.jpg');
-        this.load.image('instructions-background', 'assets/blue-sky-blurred.png');
         this.load.image('laser', 'assets/laserBlue01.png');
         this.load.image('confusion', 'assets/confusion.png');
         this.load.image('missile', 'assets/spaceMissiles_003.png');
@@ -50,6 +49,10 @@ var ScenePiloting = new Phaser.Class({
         this.load.image('ship-plus-icon', 'assets/ship_plus.png');
         this.load.image('asteroid-minus-icon', 'assets/meteor_minus.png');
         this.load.image('asteroid-plus-icon', 'assets/meteor_plus.png');
+
+        //Instructions screen
+        this.load.image('instructions-background', 'assets/blue-sky-blurred.png');
+        this.load.image('icon-back', 'assets/icon-back.png');
 
 
 
@@ -117,6 +120,8 @@ var ScenePiloting = new Phaser.Class({
             + "Avoid getting hit by asteroids, shooting down other ships, and of course a power overload - you can get rid of power by using your thrusters.\n\n"
             + "Your teammates' actions will affect your situation, make sure to communicate with them!\n\n"
             + "\nWhen everyone is ready press Spacebar to start the game."
+
+        this.backButton = new StationButton(this, 'icon-back', 'Menu', 'SceneStart', {x:CANVAS_WIDTH-(100-16), y:CANVAS_HEIGHT-100}, false);
 
         var createKey =  function(scene, key){
                 return scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes[key]);
@@ -295,6 +300,7 @@ var ScenePiloting = new Phaser.Class({
 
         this.instrutionsBackground.depth = 100;
         this.instrutions.depth = 101;
+        this.backButton.setDepth(102);
 
         this.confusion.depth = 9001;
     },
@@ -327,12 +333,19 @@ var ScenePiloting = new Phaser.Class({
     },
 
     hitShip: function(ship, asteroid){
-        this.killAsteroid(asteroid);
+        var aVel = asteroid.body.velocity.clone();
+        var sVel = ship.body.velocity.clone();
+        ship.body.velocity.add(aVel.subtract(sVel).scale(0.5));
+
         this.health -= this.params.ASTEROID_DAMAGE;
+        if(this.health>0) sendMessage('asteroidDamage', {newHealth: this.health, damage: this.params.ASTEROID_DAMAGE});
+        
         var shake = this.cameras.main.shakeEffect;
         if(!shake.isRunning || shake.intensity.x < 0.015){
             shake.start(400,.012,.012);
         }
+
+        this.killAsteroid(asteroid);
     },
 
     placeAsteroid: function(asteroid, speed){
@@ -450,13 +463,14 @@ var ScenePiloting = new Phaser.Class({
         if(gameStatus !== GS.GAME_STARTED && !g.debug.ignore_game_state) {
             if(this.fireKey.isDown && gameStatus === GS.CONNECTED){
                 sendMessage('startGame',{});
-                gameStatus === GS.GAME_STARTED;
+                this.laserCooldown = this.params.BASIC_ATTACK_COOLDOWN;
             }
             return;
         }
 
         this.instrutions.setVisible(false);
         this.instrutionsBackground.setVisible(false);
+        this.backButton.setVisible(false);
 
 
         //Ship movement
@@ -504,7 +518,7 @@ var ScenePiloting = new Phaser.Class({
             }            
         }
 
-        //Enable collisions for asteroids that are fully on screen
+        //Enable wall collisions for asteroids that are fully on screen
         this.asteroids.children.entries.filter(a=>!a.body.collideWorldBounds).
             filter(this.isFullyOnScreen).forEach(a=>a.setCollideWorldBounds(true));
 

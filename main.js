@@ -95,42 +95,6 @@ var SceneStart = new Phaser.Class({
 
 });
 
-//Station buttons
-var StationButton = new Phaser.Class({
-
-    Extends: Phaser.GameObjects.Image,
-
-    initialize:
-
-    function StationButton(scene, image, name, sceneName, pos){
-        this.sprite = scene.add.image(pos.x, pos.y, image);
-        this.nameText = scene.add.text(pos.x, pos.y+32+8, name, { font: "24px Arial", fill: "#19de65" }).setOrigin(0.5, 0);
-        this.occupantText = scene.add.text(pos.x, pos.y+32*2+8, 'Free', { font: "16px Arial", fill: "#19de65" }).setOrigin(0.5, 0);
-        this.sceneName = sceneName;
-        this.taken = false;
-
-        this.sprite.setInteractive().on('pointerup', function(event){
-            switchToScene(getActiveScene(), sceneName);
-        });
-    },
-
-    takeOver : function(playerName){
-        if(this.taken) return;
-        this.nameText.setFill("#aaaaaa");
-        this.occupantText.setFill("#aaaaaa");
-        this.occupantText.text = playerName;
-        this.taken = true;
-    },
-
-    free: function(){
-        if(!this.taken) return;
-        this.nameText.setFill("#19de65");
-        this.occupantText.setFill("#19de65");
-        this.occupantText.text = 'Free';
-        this.taken = false;
-    },
-
-});
 
 
 
@@ -251,13 +215,9 @@ const drone = new ScaleDrone(CHANNEL_ID, {
 
 function sendMessage(type, content) {
     if(g.debug.disable_messages) return;
-    drone.publish({
-    room: roomName,
-    message: {
-      type: type,
-      content: content
-    },
-  }); 
+    var message = {type: type, content: content};
+    if(members.length === 1) mainReceiveMessage(message, members[0]);
+    else drone.publish({room: roomName, message: message}); 
 }
 
 function getActiveScene() {
@@ -311,61 +271,63 @@ drone.on('open', error => {
         //TODO Update member display?
     });
 
-    room.on('data', (data, serverMember) => {
-        //Data is received here
-        getActiveScene().receiveMessage(data);      
-        console.log(data);
-        if (serverMember) {
-            var currentScene = getActiveScene();
-            switch(data.type){
-                case 'test': alert(serverMember.clientData.name+' sends a test message: '+data.content); break;
-                case 'stationLeft': //Sent whenever someone leaves a station
-                    takenStations[data.content] = null;
-                    //if(currentScene.scene.key === 'SceneStart') currentScene.stationFreed(data.content);
-                    console.log(serverMember.clientData.name + ' leaves '+data.content);
-                    break;
-                case 'stationTaken': //Sent whenever someone takes over a station
-                    if(data.content === 'SceneStart') console.error.log(serverMember.clientData.name + ' just reserved the main menu...');                
-                    if(currentScene.scene.key === data.content && serverMember.id != drone.clientId  && !g.debug.ignore_taken_stations){
-                        //Someone else joined our scene
-                        switchToScene(currentScene,'SceneStart');
-                        sendMessage('stationJammed', data.content);
-                    }
-
-                    takenStations[data.content] = serverMember.id;
-                    //if(currentScene.scene.key === 'SceneStart') currentScene.stationTaken(data.content, serverMember.clientData.name);
-
-                    console.log(serverMember.clientData.name + ' takes over '+data.content);
-                    break;
-                case 'stationJammed': //For whatever reason, there are multiple people on the same station. Recover by having them all leave.
-                    console.error.log('Scene jam at '+data.content)
-                    if(currentScene.scene.key === data.content && !g.debug.ignore_taken_stations) switchToScene(currentScene,'SceneStart');
-                    takenStations[data.content] = null;
-                    break;
-                case 'welcome': //Sent whenever a new player joins
-                    console.log('Welcome while gameStatus is '+gameStatus);
-                    if(gameStatus===GS.NOT_CONNECTED){
-                        gameStatus = data.content.gameStatus;
-                        takenStations = data.content.takenStations;
-                        /*g.stationList.forEach(function(station){
-                            if(takenStations[station]) currentScene.stationTaken(station, getMember(takenStations[station]).clientData.name);
-                        })*/
-                    }
-                    break;
-                case 'startGame': //Sent when the pilot starts the game. Scenes should listen and react to this
-                    gameStatus = GS.GAME_STARTED;
-                    break;
-                case 'endGame': //Sent when the game ends.
-                    //TODO create a game over screen
-                    switchToScene(currentScene,'SceneStart');
-                    power = 0;
-                    gameStatus = GS.CONNECTED;                    
-                    alert('Game over\n'+data.content);
-                    break;
-            }            
-        } else {
-            console.log('Server: '+data.content); 
-        }
-    });
+    room.on('data', mainReceiveMessage);
 
 });
+
+function mainReceiveMessage(data, serverMember){
+    //Data is received here
+    getActiveScene().receiveMessage(data);      
+    console.log(data);
+    if (serverMember) {
+        var currentScene = getActiveScene();
+        switch(data.type){
+            case 'test': alert(serverMember.clientData.name+' sends a test message: '+data.content); break;
+            case 'stationLeft': //Sent whenever someone leaves a station
+                takenStations[data.content] = null;
+                //if(currentScene.scene.key === 'SceneStart') currentScene.stationFreed(data.content);
+                console.log(serverMember.clientData.name + ' leaves '+data.content);
+                break;
+            case 'stationTaken': //Sent whenever someone takes over a station
+                if(data.content === 'SceneStart') console.error.log(serverMember.clientData.name + ' just reserved the main menu...');                
+                if(currentScene.scene.key === data.content && serverMember.id != drone.clientId  && !g.debug.ignore_taken_stations){
+                    //Someone else joined our scene
+                    switchToScene(currentScene,'SceneStart');
+                    sendMessage('stationJammed', data.content);
+                }
+
+                takenStations[data.content] = serverMember.id;
+                //if(currentScene.scene.key === 'SceneStart') currentScene.stationTaken(data.content, serverMember.clientData.name);
+
+                console.log(serverMember.clientData.name + ' takes over '+data.content);
+                break;
+            case 'stationJammed': //For whatever reason, there are multiple people on the same station. Recover by having them all leave.
+                console.error.log('Scene jam at '+data.content)
+                if(currentScene.scene.key === data.content && !g.debug.ignore_taken_stations) switchToScene(currentScene,'SceneStart');
+                takenStations[data.content] = null;
+                break;
+            case 'welcome': //Sent whenever a new player joins
+                console.log('Welcome while gameStatus is '+gameStatus);
+                if(gameStatus===GS.NOT_CONNECTED){
+                    gameStatus = data.content.gameStatus;
+                    takenStations = data.content.takenStations;
+                    /*g.stationList.forEach(function(station){
+                        if(takenStations[station]) currentScene.stationTaken(station, getMember(takenStations[station]).clientData.name);
+                    })*/
+                }
+                break;
+            case 'startGame': //Sent when the pilot starts the game. Scenes can listen and react to this, or just poll gameStatus
+                gameStatus = GS.GAME_STARTED;
+                break;
+            case 'endGame': //Sent when the game ends.
+                //TODO create a game over screen
+                switchToScene(currentScene,'SceneStart');
+                power = 0;
+                gameStatus = GS.CONNECTED;                    
+                alert('Game over\n'+data.content);
+                break;
+        }            
+    } else {
+        console.log('Server: '+data.content); 
+    }
+}

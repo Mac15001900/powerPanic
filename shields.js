@@ -27,8 +27,13 @@ var SceneShields = new Phaser.Class({
 
     update: function (timestep, dt) {
         if(this.backKey.isDown){
-            console.log('Switching back to menu');
-            this.scene.start('SceneStart');
+        switchToScene(this,'SceneStart');
+        }
+        if(gameStatus !== GS.GAME_STARTED && !g.debug.ignore_game_state){
+            return;
+        } else {
+            this.instructionsText.setVisible(false);
+            this.instructionsBackground.setVisible(false);
         }
     },
 
