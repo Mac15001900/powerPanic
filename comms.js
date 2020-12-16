@@ -31,7 +31,7 @@ var SceneComms = new Phaser.Class({
 
         //this.instructionsText = this.add.text(20, 64, '', { font: "16px Arial", fill: "#19de65", wordWrap:{width:CANVAS_WIDTH-40} });
         var instructionsText = "You are the comms specialist.\n\n" +
-            "Your job is to send messages to civilian ships tellling them to stay away. Unofrtunely, the translator system is somewhat broken now, and will need some help.\n\n"+
+            "Your job is to send messages to civilian ships tellling them to stay away. Unfortunelty, the translator system is somewhat broken now, and will need some help.\n\n"+
             "Mouse over letters to see which of them are part of the message - those that are will light up green. Click on all of them and send a message make all civian ships fly away.\n\n"+
             "If you transcribe the message incorrectly ships might be confused, and will come to check if you're ok.\n\n" +
             "Broadcasting messages uses up power. If you're close to an overload, you might need to send empty ones.\n\n" +
@@ -50,7 +50,7 @@ var SceneComms = new Phaser.Class({
 
         this.passwordList = [
             "CLEAR", "EVACUATE", "GO_AWAY", "RUN_AWAY", "LEAVE", "CLEAR_THE_AREA", "FLEE", "SCARPER", "SCRAM", "RUN_FOOLS", "RUN_YOU_FOOLS", "THIS_IS_BAD", 
-            "DONT_COME_HERE", "SERIOUSLY_RUN", "BIGE_XPLOSION", "EXPLOSIONS", "EXPLODE", "BOOM_BOOM", "KABOOM", "KABOOOOM", "DANGER", "PANIC", "DO_PANIC",
+            "DONT_COME_HERE", "SERIOUSLY_RUN", "BIG_EXPLOSION", "EXPLOSIONS", "EXPLODE", "BOOM_BOOM", "KABOOM", "KABOOOOM", "DANGER", "PANIC", "DO_PANIC",
             "DEATH", "DESTRUCTION", "OVERLOAD", "SUPERNOVA", "MISSILES", "CONFUSION", "OVERPOWERED", "DO_NOT_HELP", "RED_ALERT", "NOT_SAFE", "CRISIS", 
             "EMERGENCY", "THREAT", "TROUBLE", "HISSSS", "MENACE", "PRECARIOUS", "NO_GO_ZONE", "BAD_LOCATION", "YOU_MIGHT_DIE",  "YOU_WILL_DIE",
             ];

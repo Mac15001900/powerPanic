@@ -114,7 +114,7 @@ function switchToScene(currentScene, targetScene, freeCurrent=true) {
     if(g.stationList.includes(targetScene)){
         sendMessage('stationTaken', targetScene);
         console.log('Taking over '+targetScene);
-        if(g.gameStatus !== GS.CONNECTED) console.error.log('Switching to station with gamestate '+g.gameStatus);
+        if(g.gameStatus !== GS.CONNECTED) console.error('Switching to station with gamestate '+g.gameStatus);
         takenStations[currentKey] = drone.clientId;
     }
     
@@ -280,7 +280,7 @@ function mainReceiveMessage(data, serverMember){
                 console.log(serverMember.clientData.name + ' leaves '+data.content);
                 break;
             case 'stationTaken': //Sent whenever someone takes over a station
-                if(data.content === 'SceneStart') console.error.log(serverMember.clientData.name + ' just reserved the main menu...');                
+                if(data.content === 'SceneStart') console.error(serverMember.clientData.name + ' just reserved the main menu...');                
                 if(currentScene.scene.key === data.content && serverMember.id != drone.clientId){
                     //Someone else joined our scene
                     sendMessage('stationJammed', data.content);
@@ -289,7 +289,7 @@ function mainReceiveMessage(data, serverMember){
                 console.log(serverMember.clientData.name + ' takes over '+data.content);
                 break;
             case 'stationJammed': //For whatever reason, there are multiple people on the same station. Recover by having them all leave.
-                console.error.log('Scene jam at '+data.content)
+                console.error('Scene jam at '+data.content)
                 if(currentScene.scene.key === data.content && !g.debug.ignore_taken_stations) switchToScene(currentScene,'SceneStart');
                 takenStations[data.content] = null;
                 break;
