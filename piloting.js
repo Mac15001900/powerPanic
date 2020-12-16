@@ -460,8 +460,8 @@ var ScenePiloting = new Phaser.Class({
             console.log('Switching back to menu');
             switchToScene(this,'SceneStart');
         }
-        if(gameStatus !== GS.GAME_STARTED && !g.debug.ignore_game_state) {
-            if(this.fireKey.isDown && gameStatus === GS.CONNECTED){
+        if(g.gameStatus !== GS.GAME_STARTED && !g.debug.ignore_game_state) {
+            if(this.fireKey.isDown && g.gameStatus === GS.CONNECTED){
                 sendMessage('startGame',{});
                 this.laserCooldown = this.params.BASIC_ATTACK_COOLDOWN;
             }
@@ -619,9 +619,9 @@ var ScenePiloting = new Phaser.Class({
         //Stats and death
         this.power += this.params.POWER_GAIN*dt/1000;
         if(!g.debug.immortal){
-            if(this.power > 100) this.endGame('Engines exploded');
-            if(this.health <= 0) this.endGame('The ship got destroyed by an asteroid');
-            if(this.frienship <= 0) this.endGame('You killed too many civilians.');
+            if(this.power > 100) endGame('Engines exploded');
+            if(this.health <= 0) endGame('The ship got destroyed by an asteroid');
+            if(this.frienship <= 0) endGame('You killed too many civilians.');
         }
 
         this.healthBar.clear();
@@ -636,14 +636,6 @@ var ScenePiloting = new Phaser.Class({
         this.powerBar.fillStyle(0x5555ff, 1);
         this.powerBar.fillRect(16 + 48*2, CANVAS_HEIGHT-this.power*5 - 16, 32, this.power*5);
 
-    },
-
-    endGame: function(message){
-        if(gameStatus === GS.GAME_OVER) return;
-        console.log('Ending the game');
-        sendMessage('endGame',message);
-        gameStatus = GS.GAME_OVER;
-        //TODO switch to game over scene
     },
 
     receiveMessage: function (data) {

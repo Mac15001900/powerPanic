@@ -68,12 +68,6 @@ var SceneNavigation = new Phaser.Class({
     this.speedButton.alpha = 0.75;
 
     //Instructions
-    /*this.instructionsBackground = this.add.image(0,0, 'deep-space-background').setOrigin(0);
-    this.instructionsBackground.setScale(2);
-    this.instructionsBackground.depth = 9001;
-
-    this.instructionsText = this.add.text(20, 64, '', { font: "16px Arial", fill: "#19de65", wordWrap:{width:CANVAS_WIDTH-40} });*/
-    
     var instructionsText = 'You are the navigation expert.\n\nYour job is to scan the area around the ship and find regions without asteroids (the green circles). '+
       "Use the arrow keys or W,A,S,D to choose the direction in which to scan.\n\n"+
       "Sadly the sensor software is a bit buggy and will crash if you scan the same area twice, making the pilot blind for a few seconds. "+
@@ -284,12 +278,8 @@ var SceneNavigation = new Phaser.Class({
     if(this.backKey.isDown){
         switchToScene(this,'SceneStart');
       }
-    if(gameStatus !== GS.GAME_STARTED && !g.debug.ignore_game_state){
-      return;
-    } else {
-      this.instructionsText.setVisible(false);
-      this.instructionsBackground.setVisible(false);
-    }
+    if(g.gameStatus !== GS.GAME_STARTED && !g.debug.ignore_game_state) return;
+    else this.instructionScreen.hide();
 
     this.speedButton.setVisible(timestep - this.lastPress < 7000);
 

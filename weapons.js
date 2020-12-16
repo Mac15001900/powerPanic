@@ -80,7 +80,7 @@ var SceneWeapons = new Phaser.Class({
         };
 
         this.input.on('pointerdown', function () {
-            if(gameStatus === GS.GAME_STARTED || g.debug.ignore_game_state) this.dropPiece(); 
+            if(g.gameStatus === GS.GAME_STARTED || g.debug.ignore_game_state) this.dropPiece(); 
         }, this);
 
         var weldingParticles = this.add.particles('red-particle');
@@ -102,7 +102,7 @@ var SceneWeapons = new Phaser.Class({
             console.log('Switching back to menu');
             switchToScene(this,'SceneStart');
         }
-        if(gameStatus !== GS.GAME_STARTED && !g.debug.ignore_game_state) return;
+        if(g.gameStatus !== GS.GAME_STARTED && !g.debug.ignore_game_state) return;
         //this.instrutions.setVisible(false);
         //this.background.depth = -10;
         this.instrutions.hide();
